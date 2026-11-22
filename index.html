@@ -237,6 +237,44 @@ function App(){
  const wm=new URLSearchParams(location.search).get('widget')==='1';
  const [ch,setCh]=useState(()=>new URLSearchParams(location.search).get('channel')||LS.get('anag_ch',''));
  const [conn,setConn]=useState('off');
+
+  // Live sync between Streamer Dashboard and OBS Browser Source
+  const obsBc = useRef(null);
+  useEffect(()=>{
+   try { obsBc.current = new BroadcastChannel('anag_obs_sync'); } catch(e){}
+   return ()=>{ if(obsBc.current) obsBc.current.close(); };
+  },[]);
+  const syncToObs = (key, val) => {
+   if(obsBc.current){
+    obsBc.current.postMessage({ key, val, channel: ch.trim().toLowerCase() });
+   }
+   try { localStorage.setItem('anag_obs_cfg', JSON.stringify({ key, val, ts: Date.now() })); } catch(e){}
+  };
+  // If running in OBS widget mode (wm), listen for real-time remote commands!
+  useEffect(()=>{
+   if(!wm) return;
+   const handleSync = (key, val) => {
+    if(key === 'theme') setTheme(val);
+    else if(key === 'wsnd') setWsnd(val);
+    else if(key === 'dur') setDur(val);
+    else if(key === 'dict') setTw(t=>({...t,dict:val}));
+    else if(key === 'pause') setTw(t=>({...t,paused:val}));
+   };
+   let bc;
+   try {
+    bc = new BroadcastChannel('anag_obs_sync');
+    bc.onmessage = e => { if(e.data) handleSync(e.data.key, e.data.val); };
+   } catch(e){}
+   const onStorage = e => {
+    if(e.key === 'anag_obs_cfg' && e.newValue){
+     try { const d = JSON.parse(e.newValue); handleSync(d.key, d.val); } catch(err){}
+    }
+   };
+   window.addEventListener('storage', onStorage);
+   return () => { if(bc) bc.close(); window.removeEventListener('storage', onStorage); };
+  },[wm]);
+
+ const [sim,setSim]=useState(false);
  
  
  const [theme,setTheme]=useState(()=>TH[QP.get('theme')]?QP.get('theme'):LS.get('anag_wtheme','glass'));
@@ -269,7 +307,7 @@ function App(){
   useEffect(()=>{LS.set('anag_auth',auth)},[auth]);
 
  useEffect(()=>{(async()=>{
-  try{const r=await fetch('./words_vesum_clean.json');if(r.ok){const a=parse(await r.text());if(a.length>100){setWords(a);setVs(a);setSrc('ВЕСУМ');return}}}catch(e){}
+  try{const r=await fetch('./words_vesum_clean.json');if(r.ok){const a=parse(await r.text());if(a.length>100){setWords(a);setVs(a);setSrc('Вбудований');return}}}catch(e){}
   const s=LS.get('anag_dict',null);
   if(s){const a=clean(s.split('\n'));if(a.length>=10){setWords(a);fit(a);setSrc('Ваша база (збережена)')}}
  })()},[]);
@@ -327,7 +365,8 @@ function App(){
  const nwr=useRef();nwr.current=nw;
  useEffect(()=>{const id=setInterval(()=>setTw(t=>{if(!t.run||t.paused||(t.ph==='play'&&!t.timer))return t;const n={...t,t:t.t-1};if(n.t>0)return n;return t.ph==='play'?{...n,ph:'rev',ok:false,sk:false,t:t.rest,winner:'',u:n.u.map(x=>({...x,streak:0}))}:{...n,ph:'play',ok:false,sk:false,t:t.dur,r:t.r+1,...nwr.current()}}),1000);return()=>clearInterval(id)},[]);
  useEffect(()=>{if(wsnd&&tw.ph==='rev'&&(tab==='tw'||wm))(tw.ok?SFX.win:SFX.err)()},[tw.ph,tw.r,tw.ok,tw.sk]);
-   useEffect(()=>{LS.set('anag_wtheme',theme)},[theme]);
+     useEffect(()=>{if(!sim)return;const id=setInterval(()=>{const t=twr.current;if(t.run&&t.ph==='play'&&Math.random()<.06)twWin(TW0[Math.random()*TW0.length|0].name)},1000);return()=>clearInterval(id)},[sim]);
+  useEffect(()=>{LS.set('anag_wtheme',theme)},[theme]);
  useEffect(()=>{LS.set('anag_glow',neonGlow)},[neonGlow]);
  useEffect(()=>{if((tw.dict==='mine'||co.cfg.dict==='mine')&&!sets.some(s=>s.name===packName)){setTw(x=>x.dict==='mine'?{...x,dict:'mix'}:x);setCo(c=>c.cfg.dict==='mine'?{...c,cfg:{...c.cfg,dict:'mix'}}:c);setPack(null);setPackName('')}},[sets]);
  
@@ -393,14 +432,102 @@ function App(){
  const credit=(gain,run,hn)=>setAccs(a=>{const id=actRef.current,p=a[id]||blank(),d=today(),s={...p.st};let days=p.days;if(!hn){if(s.date!==d){s.date=d;s.count=0}if(s.last!==d){s.streak=s.last===yest()?s.streak+1:1;s.last=d}s.count++;s.best=Math.max(s.best||0,run>=2?run:0)}if(gain>0){days={...days,[d]:(days[d]||0)+gain};if(id==='acc')pushScoreToCloud(p.total+gain,p.name);};return{...a,[id]:{...p,total:p.total+gain,days,st:s}}});
  const goLobby=()=>setCo(c=>({...c,g:null,players:c.players.map(p=>({...p,ready:!!botOf(p.id)}))}));
  const toast=m=>{if(!m)return;const id=Date.now()+Math.random();setToasts(a=>[...a,{id,m}]);setTimeout(()=>setToasts(a=>a.map(x=>x.id===id?{...x,out:1}:x)),7600);setTimeout(()=>setToasts(a=>a.filter(x=>x.id!==id)),8000)};
- const sendFb=async()=>{if(!fb.text.trim())return toast('Напишіть повідомлення');setFbBusy(true);try{const ct=fb.contact.trim(),r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:'6f345d3e-26f7-4fc7-942b-b7ff8c52e7af',subject:'Анаграма: '+(fb.type==='bug'?'Багрепорт':'Ідея'),type:fb.type==='bug'?'Баг':'Ідея',name:ct||'Гравець',email:ct.includes('@')?ct:undefined,message:fb.text})});const j=await r.json();if(j.success){toast('Дякуємо! Ваше повідомлення надіслано розробнику');setFb({...fb,text:''});setModal(false)}else toast('Не вдалося надіслати, спробуйте пізніше')}catch(e){toast('Не вдалося надіслати: немає з’єднання')}setFbBusy(false)};
+ const sendFb=async()=>{if(!fb.text.trim())return toast('Напишіть повідомлення');setFbBusy(true);try{const ct=fb.contact.trim(),r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:'6f345d3e-26f7-4fc7-942b-b7ff8c52e7af',subject:'Анаграма: '+(fb.type==='bug'?'Багрепорт':fb.type==='idea'?'Ідея':'Відгук'),type:fb.type==='bug'?'Баг':fb.type==='idea'?'Ідея':'Відгук',name:ct||'Гравець',email:ct.includes('@')?ct:undefined,message:fb.text})});const j=await r.json();if(j.success){toast('Дякуємо! Ваше повідомлення надіслано розробнику');setFb({...fb,text:''});setModal(false)}else toast('Не вдалося надіслати, спробуйте пізніше')}catch(e){toast('Не вдалося надіслати: немає з’єднання')}setFbBusy(false)};
  const togglePause=()=>setCo(c=>{const g=c.g;if(!g)return c;if(!g.paused)return{...c,g:{...g,paused:true,pAt:Date.now()}};const d=Date.now()-g.pAt;return{...c,g:{...g,paused:false,t0:g.t0+d,pw:Object.fromEntries(Object.entries(g.pw).map(([k,q])=>[k,{...q,t0:q.t0+d}]))}}});
- const startCo=()=>{if(canStart)setCo(c=>startG(c,cwr.current))};
+ const startCo=()=>{if(canStart)setCo(c=>{const next=startG(c,cwr.current);broadcastCoop('start',{g:next.g});return next})};
  const addBot=()=>setCo(c=>{const b=BOTS.find(x=>!c.players.some(p=>p.id===x[0]));return b?{...c,players:[...c.players,{id:b[0],ready:true}]}:c});
  const copyRoom=()=>{try{navigator.clipboard.writeText(location.origin+location.pathname+'?room='+co.code)}catch(e){}setCcopied(true);setTimeout(()=>setCcopied(false),1800)};
- const joinRoom=()=>{const code=jc.trim().toUpperCase();if(!/^[A-Z]{4}-\d{4}$/.test(code))return toast('Код має вигляд ANGR-4821');toast('Ви приєдналися до кімнати: хост керує налаштуваннями, гра стартує, коли всі готові.');setCo({...initCo(),code,hostId:'b1',players:[{id:'b1',ready:true},{id:'me',ready:false},{id:'b2',ready:true}]})};
+ 
+  // Real Coop Multiplayer over Supabase Realtime
+  const myPid = useRef(LS.get('anag_pid', null) || ('p_' + Math.random().toString(36).slice(2, 9))).current;
+  useEffect(()=>{ LS.set('anag_pid', myPid); },[myPid]);
+  const coChanRef = useRef(null);
+
+  const initCoopRealtime = (roomCode) => {
+   if(!sb) return;
+   if(coChanRef.current) coChanRef.current.unsubscribe();
+   const chan = sb.channel('coop_' + roomCode, { config: { presence: { key: myPid } } });
+   coChanRef.current = chan;
+
+   chan.on('presence', { event: 'sync' }, () => {
+    const state = chan.presenceState();
+    const remoteHumans = [];
+    Object.entries(state).forEach(([k, list]) => {
+     if(list && list[0]) remoteHumans.push(list[0]);
+    });
+    setCo(c => {
+     // Keep current bots, replace human players with live presence
+     const bots = c.players.filter(p => botOf(p.id));
+     const humans = remoteHumans.map(h => ({
+      id: h.id === myPid ? 'me' : h.id,
+      name: h.name,
+      ready: !!h.ready
+     }));
+     // Ensure 'me' is always present
+     if(!humans.some(p => p.id === 'me')){
+      humans.unshift({ id: 'me', name: me, ready: true });
+     }
+     const newPlayers = [...humans, ...bots];
+     // Auto-destroy room if no real humans remain
+     if(humans.length === 0){
+      return { ...initCo(), code: 'ANGR-' + (1000 + Math.random() * 9000 | 0) };
+     }
+     // Keep host valid
+     const hasHost = newPlayers.some(p => p.id === c.hostId);
+     const newHost = hasHost ? c.hostId : 'me';
+     return { ...c, players: newPlayers, hostId: newHost };
+    });
+   });
+
+   chan.on('broadcast', { event: 'coop_msg' }, ({ payload }) => {
+    if(!payload) return;
+    if(payload.type === 'start'){
+     setCo(c => ({ ...c, g: payload.g, players: c.players.map(p => ({ ...p, ready: true })) }));
+    } else if(payload.type === 'cfg'){
+     setCo(c => ({ ...c, cfg: payload.cfg }));
+    } else if(payload.type === 'solve'){
+     setCo(c => coSolve(c, payload.id === myPid ? 'me' : payload.id, 0, cwr.current));
+    } else if(payload.type === 'crown'){
+     setCo(c => ({ ...c, hostId: payload.targetId === myPid ? 'me' : payload.targetId }));
+     toast('👑 Хостом кімнати став ' + (payload.targetId === myPid ? 'ви' : payload.name));
+    } else if(payload.type === 'kick' && payload.targetId === myPid){
+     toast('Вас виключено з кімнати');
+     setCo(initCo());
+    }
+   });
+
+   chan.subscribe(async (status) => {
+    if(status === 'SUBSCRIBED'){
+     await chan.track({ id: myPid, name: me, ready: true, isHost: iHost });
+    }
+   });
+  };
+
+  useEffect(()=>{
+   if(tab === 'co' && co.code){
+    initCoopRealtime(co.code);
+   }
+   return () => {
+    if(coChanRef.current) coChanRef.current.unsubscribe();
+   };
+  },[co.code, tab]);
+
+  const broadcastCoop = (type, data = {}) => {
+   if(coChanRef.current){
+    coChanRef.current.send({ type: 'broadcast', event: 'coop_msg', payload: { type, ...data, myPid } });
+   }
+  };
+
+  const joinRoom = () => {
+   const code = jc.trim().toUpperCase();
+   if(!/^[A-Z]{4}-\d{4}$/.test(code)) return toast('Код має вигляд ANGR-4821');
+   toast('Підключаємося до кімнати ' + code + '…');
+   setCo({ ...initCo(), code, hostId: 'remote', players: [{ id: 'me', ready: true }] });
+   initCoopRealtime(code);
+  };
+
  const coGuess=(v,enter)=>{const c=cor.current,g=c.g;if(!g||g.paused||g.ph==='end')return;const s2=c.cfg.mode==='sprint',q=s2?g.pw.me:g;if(!q||q.done||(!s2&&g.ph!=='play'))return;const s=v.trim().toLowerCase();if(!s)return;
-  if(s===q.w||(dr.current.has(s)&&srt(s)===srt(q.w))){setCinp('');setCo(c2=>coSolve(c2,'me',0,cwr.current))}
+  if(s===q.w||(dr.current.has(s)&&srt(s)===srt(q.w))){setCinp('');setCo(c2=>coSolve(c2,'me',0,cwr.current));broadcastCoop('solve');}
   else if(enter){setCinp('');setCbad(true);setTimeout(()=>setCbad(false),450);setCo(coWrong)}};
  useEffect(()=>{const id=setInterval(()=>setCo(c=>tickCo(c,cwr.current)),1000);return()=>clearInterval(id)},[]);
  useEffect(()=>{const id=setInterval(()=>setCo(c=>{if(c.g)return c;const nr=c.players.find(p=>botOf(p.id)&&!p.ready);if(nr&&Math.random()<.35)return{...c,players:c.players.map(p=>p===nr?{...p,ready:true}:p)};if(c.hostId!=='me'&&c.players.length>=2&&c.players.every(p=>p.ready))return startG(c,cwr.current);return c}),1500);return()=>clearInterval(id)},[]);
@@ -423,7 +550,7 @@ function App(){
    <div className="flex gap-2">
     <button className={btn} onClick={()=>setMuted(!muted)} title="Звук"><Ic n={muted?'mute':'vol'}/></button>
     <button className={btn} onClick={()=>setDark(!dark)} title='Світла / Темна тема'><Ic n={dark?'sun':'moon'}/></button>
-    <button className={btn+' flex items-center gap-1.5 whitespace-nowrap'} onClick={()=>setModal('prof')}><Ic n='user'/> {name.trim()||(authed?'Гравець':'Гість')}{authed&&<span className='w-2 h-2 rounded-full bg-emerald-500' title='Онлайн'/>}</button>
+    <button className={btn+' flex items-center gap-1.5 whitespace-nowrap'} onClick={()=>setModal('prof')}><Ic n='user'/> {authed ? (name.trim() || 'Гравець') : 'Профіль'}{authed && <span className='w-2 h-2 rounded-full bg-emerald-500' title='Онлайн'/>}</button>
    </div>
   </header>
   
@@ -467,10 +594,10 @@ function App(){
      <div><kbd className={KB}>Backspace</kbd> — стерти останню літеру</div>
      <div><kbd className={KB}>Ctrl + Backspace</kbd> — очистити все поле вводу</div></div></div>
   </div></Modal>}
-  {modal==='idea'&&<Modal t='Запропонувати ідею / Багрепорт' close={()=>setModal(false)}>
-   <div className='flex gap-2'>{[['idea','Ідея'],['bug','Баг']].map(([k,l])=><button key={k} className={sel(fb.type===k)+' flex-1 !py-1 text-sm'} onClick={()=>setFb({...fb,type:k})}>{l}</button>)}</div>
+  {modal==='idea'&&<Modal t='Відгук / Ідея / Багрепорт' close={()=>setModal(false)}>
+   <div className='flex gap-2'>{[['feedback','Відгук'],['idea','Ідея'],['bug','Баг']].map(([k,l])=><button key={k} className={sel(fb.type===k)+' flex-1 !py-1 text-sm'} onClick={()=>setFb({...fb,type:k})}>{l}</button>)}</div>
    <input value={fb.contact} onChange={e=>setFb({...fb,contact:e.target.value})} placeholder='Нікнейм або пошта (за бажанням)' className={inp}/>
-   <textarea value={fb.text} onChange={e=>setFb({...fb,text:e.target.value})} rows={5} placeholder='Опишіть ідею або помилку' className={inp}/>
+   <textarea value={fb.text} onChange={e=>setFb({...fb,text:e.target.value})} rows={5} placeholder={fb.type==='bug'?'Опишіть помилку та як її відтворити…':fb.type==='idea'?'Опишіть вашу ідею для гри…':'Поділіться вашими враженнями або пропозиціями…'} className={inp}/>
    <button className={pri+' w-full disabled:opacity-60'} disabled={fbBusy} onClick={sendFb}>{fbBusy?'Надсилаємо…':'Надіслати'}</button></Modal>}
   {modal==='prof'&&<Modal t='Профіль' close={()=>setModal(false)}>
    <div className='flex items-center gap-2 text-sm'>{authed?<span className='px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-xs font-bold flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-emerald-500'/> Онлайн</span>:<span className='opacity-60 text-xs'>Гість: рекорди зберігаються лише на цьому пристрої</span>}</div>
@@ -516,7 +643,7 @@ function App(){
    </section>
    <section className={card+' space-y-2'}>
     <h2 className="font-bold">Словник</h2>
-    <div className='flex flex-wrap gap-2 text-sm'><button className={sel(src==='Вбудований')} onClick={()=>pickSrc('Вбудований',BUILTIN)}>Вбудований ({BUILTIN.length})</button>{vs&&<button className={sel(src==='ВЕСУМ')} onClick={()=>pickSrc('ВЕСУМ',vs)}>ВЕСУМ ({vs.length})</button>}{sets.map(s=><button key={s.id} className={sel(src===s.name)} onClick={()=>pickSrc(s.name,s.words)}>{s.name} ({s.words.length} слів)</button>)}</div>
+    <div className='flex flex-wrap gap-2 text-sm'><button className={sel(src==='Вбудований')} onClick={()=>pickSrc('Вбудований',vs||BUILTIN)}>Вбудований</button>{sets.map(s=><button key={s.id} className={sel(src===s.name)} onClick={()=>pickSrc(s.name,s.words)}>{s.name}</button>)}</div>
     <p className='text-xs opacity-60'>Активний набір: {src} · слів: {words.length}</p>
     <div className="flex flex-wrap gap-2">
      <button className={btn} onClick={()=>{setWantPack(false);setModal('add')}}><Ic n='plus'/> Власний пак</button>
@@ -672,6 +799,11 @@ function App(){
      {lst.length?<div className={'grid gap-2 '+(top>5?'sm:grid-cols-2':'')} style={top>5?{gridAutoFlow:'column',gridTemplateRows:'repeat(5,auto)'}:{}}>{lst.map((r,i)=>{const win=tw.ph==='rev'&&tw.ok&&r.name===tw.winner,t1=i===0&&theme==='neon';return <div key={r.name} className={'flex items-center gap-3 px-3 py-2 '+(win?th.okRow+' rounded-full':th.row+(i<3?' '+th.pod[i]:''))} style={t1&&!win?{background:'linear-gradient(90deg,rgba(250,204,21,.28),rgba(145,70,255,.38))'}:undefined}><span className={'w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm font-black '+(i<3?th.med[i]:th.rk)}>{i+1}</span><span className='flex-1 truncate font-semibold'>{r.name}</span>{r.streak>=2&&<span className='px-2 rounded-full bg-amber-400 text-slate-900 text-xs font-bold inline-flex items-center gap-0.5'><Fl c='w-3 h-3'/>{r.streak}</span>}<b className='tabular-nums text-lg'>{r.score}</b></div>})}</div>:<div className='text-sm opacity-60'>Поки порожньо: чекаємо першу відгадку в чаті</div>}
     </div>
    </div></div>
+      <div className='tw-ctl flex flex-wrap justify-center gap-2'>
+    <button className={btn} onClick={()=>twWin('father_267')}><Ic n='flask'/> Симулювати перемогу</button>
+    <button className={btn} onClick={twFail}><Ic n='flask'/> Симулювати таймаут</button>
+    <button className={btn} onClick={()=>setSim(!sim)}><Ic n='users'/> Симуляція чату: {sim?'увімк.':'вимк.'}</button>
+   </div>
    <div className={card+' tw-ctl space-y-3 text-sm'}>
     <div className='flex flex-wrap items-center justify-between gap-2'><h2 className='font-bold'>Підключення до OBS</h2><span className='px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-xs font-semibold'>Рекомендована роздільна здатність: 900 × 560 px</span></div>
     <input readOnly value={wurl} onFocus={e=>e.target.select()} className={inp+' font-mono text-xs'}/>
@@ -690,7 +822,7 @@ function App(){
   <footer className='mt-auto pt-6 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-x-20 gap-y-6 text-sm'>
    <div className='flex flex-col items-start gap-2.5'><div className='text-xs uppercase tracking-wider opacity-50'>Про проєкт</div>
     <button className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity' onClick={()=>setModal('rules')}><Ic n='book'/> Про гру та правила</button>
-    <button className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity' onClick={()=>setModal('idea')}><Ic n='bulb'/> Ідея або багрепорт</button></div>
+    <button className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity' onClick={()=>setModal('idea')}><Ic n='bulb'/> Відгук \ Ідея \ Баг ?</button></div>
    <div className='flex flex-col items-start gap-2.5'><div className='text-xs uppercase tracking-wider opacity-50'>Підтримати проєкт</div>
     <a className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity !opacity-100 text-emerald-600 dark:text-emerald-400' href={MONO} target='_blank' rel='noopener'><Ic n='heart'/> Monobank</a>
     <a className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity' href={BMC} target='_blank' rel='noopener'><Ic n='coffee'/> Buy Me a Coffee</a></div>
