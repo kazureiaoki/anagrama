@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <filter id="sh" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <g transform="translate(5, 18) rotate(-12, 13, 13)" filter="url(#sh)">
+    <rect width="25" height="25" rx="6" fill="#059669"/>
+    <text x="12.5" y="19" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="17" fill="#ffffff" text-anchor="middle">Н</text>
+  </g>
+  <g transform="translate(20, 8) rotate(6, 13, 13)" filter="url(#sh)">
+    <rect width="25" height="25" rx="6" fill="#f8fafc"/>
+    <text x="12.5" y="19" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="17" fill="#0f172a" text-anchor="middle">А</text>
+  </g>
+  <g transform="translate(35, 19) rotate(-3, 13, 13)" filter="url(#sh)">
+    <rect width="25" height="25" rx="6" fill="#10b981"/>
+    <text x="12.5" y="19" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="17" fill="#ffffff" text-anchor="middle">Г</text>
+  </g>
+</svg>

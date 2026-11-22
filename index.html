@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8"><title>Anagrama</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3Cfilter%20id%3D%22sh%22%20x%3D%22-20%25%22%20y%3D%22-20%25%22%20width%3D%22150%25%22%20height%3D%22150%25%22%3E%0A%20%20%20%20%20%20%3CfeDropShadow%20dx%3D%220%22%20dy%3D%222%22%20stdDeviation%3D%221.5%22%20flood-color%3D%22%23000%22%20flood-opacity%3D%220.3%22/%3E%0A%20%20%20%20%3C/filter%3E%0A%20%20%3C/defs%3E%0A%20%20%3Cg%20transform%3D%22translate%285%2C%2018%29%20rotate%28-12%2C%2013%2C%2013%29%22%20filter%3D%22url%28%23sh%29%22%3E%0A%20%20%20%20%3Crect%20width%3D%2225%22%20height%3D%2225%22%20rx%3D%226%22%20fill%3D%22%23059669%22/%3E%0A%20%20%20%20%3Ctext%20x%3D%2212.5%22%20y%3D%2219%22%20font-family%3D%22system-ui%2C%20-apple-system%2C%20sans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2217%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3E%D0%9D%3C/text%3E%0A%20%20%3C/g%3E%0A%20%20%3Cg%20transform%3D%22translate%2820%2C%208%29%20rotate%286%2C%2013%2C%2013%29%22%20filter%3D%22url%28%23sh%29%22%3E%0A%20%20%20%20%3Crect%20width%3D%2225%22%20height%3D%2225%22%20rx%3D%226%22%20fill%3D%22%23f8fafc%22/%3E%0A%20%20%20%20%3Ctext%20x%3D%2212.5%22%20y%3D%2219%22%20font-family%3D%22system-ui%2C%20-apple-system%2C%20sans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2217%22%20fill%3D%22%230f172a%22%20text-anchor%3D%22middle%22%3E%D0%90%3C/text%3E%0A%20%20%3C/g%3E%0A%20%20%3Cg%20transform%3D%22translate%2835%2C%2019%29%20rotate%28-3%2C%2013%2C%2013%29%22%20filter%3D%22url%28%23sh%29%22%3E%0A%20%20%20%20%3Crect%20width%3D%2225%22%20height%3D%2225%22%20rx%3D%226%22%20fill%3D%22%2310b981%22/%3E%0A%20%20%20%20%3Ctext%20x%3D%2212.5%22%20y%3D%2219%22%20font-family%3D%22system-ui%2C%20-apple-system%2C%20sans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2217%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22middle%22%3E%D0%93%3C/text%3E%0A%20%20%3C/g%3E%0A%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>try{var t=localStorage.getItem('anag_theme');if(t?t=='dark':matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.classList.add('dark')}catch(e){}</script>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config={darkMode:'class'}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+body.wm{background:transparent!important}body.wm header,body.wm footer,body.wm .tw-ctl{display:none!important}
+.tile{transition:background .3s,transform .15s}
+.ok{background:#10b981!important;color:#fff!important;border-color:#059669!important;animation:pop .5s both}
+@keyframes pop{50%{transform:scale(1.18)}}
+@keyframes winHop{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-12px) scale(1.12)}60%{transform:translateY(0) scale(.97)}}
+@keyframes loseWobble{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px) rotate(-3deg)}40%{transform:translateX(6px) rotate(3deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes confetti{0%{transform:translateY(-10%) rotate(0)}100%{transform:translateY(520px) rotate(540deg)}}
+@keyframes rise{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+@keyframes toastOut{to{opacity:0;transform:translateY(12px)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes holoShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes floatWave{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(1deg)}}
+.rd{background:#ef4444!important;color:#fff!important;border-color:#dc2626!important;animation:loseWobble .6s ease both}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+</style></head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo}=React;
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
+const BUILTIN0=("книга хмара вікно ручка місто зірка ягода пісня берег сонце гроза школа озеро вечір ранок осінь лелека калина верба зерно річка гілка квітка дорога пшоно жінка хлопець бджола "+
+"дівчина планета подушка телефон капуста годинник черевик півострів вишивка бабуся картопля сметана комашка метелик соловей кораблик футболка малина садиба вулиця лікарня ромашка перемога тротуар світлофор автобус трамвай мотоцикл пасажир вокзал аеропорт "+
+"мікрофон виноград пшениця крамниця вчителька мандрівка шоколадка електрика письменник чарівниця паляниця подорожник "+
+"перекладач відпочинок винахідник астрономія працівниця електричка вантажівка бібліотека університет картоплина гуртожиток "+
+"письменниця мореплавець переможниця кіноактриса мандрівниця студентство програмістка велосипедист громадянство вихователька кінематограф господарство мовознавство правопорушник бібліотекарка").split(' ');
+const RE=/^[\p{L}'’ʼ-]{2,}$/u;
+const clean=a=>[...new Set(a.map(w=>String(w).trim().toLowerCase()).filter(w=>RE.test(w)))];
+const BUILTIN=clean(BUILTIN0);
+const flat=v=>Array.isArray(v)?v.flatMap(flat):v&&typeof v==='object'?Object.values(v).flatMap(flat):[v];
+const parse=t=>{let a;try{a=flat(JSON.parse(t))}catch(e){a=t.split(/[\s,;]+/)}return clean(a)};
+const LV={easy:['Легкий','5–6',5,6],mid:['Середній','7–8',7,8],hard:['Складний','9–13',9,13],mix:['Змішаний','5–13',5,13]};
+const pts=n=>n;
+const today=()=>new Date().toLocaleDateString('sv');
+const yest=()=>new Date(Date.now()-864e5).toLocaleDateString('sv');
+const scramble=w=>{const a=[...w];for(let t=0;t<20;t++){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}if(a.join('')!==w)break}return a.map((ch,id)=>({ch,id}))};
+let AC;const beep=(f,d=.1,t='sine',v=.08,dl=0)=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+dl;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(AC.destination);o.start(s);o.stop(s+d)}catch(e){}};
+const SFX={click:()=>beep(520,.05,'triangle'),win:()=>[523,659,784].forEach((f,i)=>beep(f,.18,'sine',.1,i*.09)),err:()=>beep(150,.25,'sawtooth',.06),tick:()=>beep(900,.05,'square',.04)};
+const SEED=[];
+const IC={sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>',moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',vol:'<path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',mute:'<path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6M16 9l6 6"/>',shuf:'<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22M2 6h1.4c1.3 0 2.5.6 3.3 1.7l.8 1.1M22 18h-5.4c-1.3 0-2.5-.6-3.3-1.7l-.8-1.1M18 2l4 4-4 4M18 14l4 4-4 4"/>',skip:'<path d="m5 4 10 8-10 8V4ZM19 5v14"/>',bulb:'<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>',up:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>'};
+Object.assign(IC,{timer:`<path d='M10 2h4M12 14l3-3'/><circle cx='12' cy='14' r='8'/>`,star:`<path d='m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2Z'/>`,leaf:`<path d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10ZM2 21c0-3 1.9-5.4 5-6'/>`,gamepad:`<path d='M6 12h4M8 10v4M15 13h.01M18 11h.01'/><rect x='2' y='6' width='20' height='12' rx='4'/>`,globe:`<circle cx='12' cy='12' r='10'/><path d='M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20'/>`,tv:`<rect x='2' y='7' width='20' height='15' rx='2'/><path d='m17 2-5 5-5-5'/>`,trophy:`<path d='M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.7V17c0 .6-.5 1-1.2 1.2C7.8 18.7 7 20.2 7 22M14 14.7V17c0 .6.5 1 1.2 1.2 1 .5 1.8 2 1.8 3.8M18 2H6v7a6 6 0 0 0 12 0V2Z'/>`,check:`<path d='M20 6 9 17l-5-5'/>`,del:`<path d='M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2ZM18 9l-6 6M12 9l6 6'/>`,coffee:`<path d='M10 2v2M14 2v2M6 2v2M16 8h1a4 4 0 1 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z'/>`,pause:`<rect x='14' y='4' width='4' height='16' rx='1'/><rect x='6' y='4' width='4' height='16' rx='1'/>`,play:`<path d='m6 3 14 9-14 9V3Z'/>`,plus:`<path d='M5 12h14M12 5v14'/>`,edit:`<path d='M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/>`,trash:`<path d='M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2'/>`,users:`<path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'/><circle cx='9' cy='7' r='4'/>`,login:`<path d='M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3'/>`,x:`<path d='M18 6 6 18M6 6l12 12'/>`});
+const BMC='https://buymeacoffee.com/kazariel',MONO='https://send.monobank.ua/jar/ARs81ReBkH',IDEA='mailto:?subject=Ідея для Анаграми';
+const inp='w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800';
+const srt=w=>[...w].sort().join('');
+const Ic=({n})=><svg className="w-5 h-5 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{__html:IC[n]}}/>;
+const tsz=n=>n<=7?'w-12 h-12 md:w-14 md:h-14 text-2xl':n<=10?'w-10 h-10 md:w-11 md:h-11 text-xl':'w-8 h-8 md:w-9 md:h-9 text-base md:text-lg';
+const T=({ch,n,ok,rd,ghost,empty,i,onClick})=><button onClick={onClick} style={i!=null&&!ok&&!rd&&!ghost?{animation:'floatWave 3.5s ease-in-out infinite',animationDelay:i*120+'ms'}:undefined} className={`tile shrink min-w-[1.25rem] ${tsz(n)} uppercase font-bold rounded-lg border-2 flex items-center justify-center select-none ${empty?'border-dashed border-slate-300 dark:border-slate-600':'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-500 shadow-sm active:scale-95'} ${ok?'ok':''} ${rd?'rd':''} ${ghost?'opacity-20 pointer-events-none':''}`}>{ch}</button>;
+const blank=()=>({name:'',total:0,days:{},st:{date:'',count:0,streak:0,last:'',best:0}});
+const mergeGuest=a=>{const g=a.guest||blank(),c=a.acc||{...blank(),name:g.name},days={...c.days},latestName=(g.name&&g.name.trim())||(c.name&&c.name.trim())||'Гравець';Object.entries(g.days||{}).forEach(([k,v])=>{days[k]=(days[k]||0)+v});return{...a,acc:{...c,name:latestName,total:c.total+g.total,days,st:(c.st.count||c.st.streak)?c.st:g.st},guest:blank()}};
+const mmss=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const BADGE='inline-flex items-center gap-1 px-3 py-1 rounded-lg border-2 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-500 font-bold text-sm tabular-nums';
+const card='rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4';
+const btn='px-4 py-2 rounded-xl font-semibold transition bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600';
+const pri='px-4 py-3 rounded-xl font-bold transition bg-emerald-600 hover:bg-emerald-500 text-white';
+const sel=a=>`px-3 py-2 rounded-xl font-semibold border-2 transition ${a?'border-emerald-500 bg-emerald-500/10':'border-slate-200 dark:border-slate-700'}`;
+const Tw=()=><svg className='w-5 h-5 inline' viewBox='0 0 24 24' fill='#9146FF'><path d='M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.43l-3 3v-3H6.857V1.714h13.714Z'/></svg>;
+Object.assign(IC,{book:`<path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14ZM4 19.5V21h16'/>`,heart:`<path d='M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z'/>`,user:`<circle cx='12' cy='8' r='4'/><path d='M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1'/>`});
+const Modal=({t,close,children})=><div className='fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4' onClick={close}><div className={card+' w-full max-w-md max-h-[85vh] overflow-auto space-y-3'} onClick={e=>e.stopPropagation()}><div className='flex justify-between items-center'><h2 className='font-bold'>{t}</h2><button onClick={close}><Ic n='x'/></button></div>{children}</div></div>;
+Object.assign(IC,{lock:`<rect x='3' y='11' width='18' height='11' rx='2'/><path d='M7 11V7a5 5 0 0 1 10 0v4'/>`,crown:`<path d='m2 4 3 12h14l3-12-6 7-4-9-4 9-6-7Z'/><path d='M5 20h14'/>`,bolt:`<path d='M13 2 3 14h9l-1 8 10-12h-9Z'/>`,brain:`<path d='M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z'/><path d='M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z'/><path d='M12 5v13'/>`,target:`<circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/>`,gem:`<path d='M6 3h12l4 6-10 13L2 9Z'/><path d='M11 3 8 9l4 13 4-13-3-6M2 9h20'/>`,keyboard:`<rect x='2' y='4' width='20' height='16' rx='2'/><path d='M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10'/>`,terminal:`<path d='m4 17 6-6-6-6M12 19h8'/>`,flask:`<path d='M10 2v7.5L4.5 19a2 2 0 0 0 1.7 3h11.6a2 2 0 0 0 1.7-3L14 9.5V2M8.5 2h7M7 16h10'/>`,sparkles:`<path d='m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2ZM19 3v4M21 5h-4'/>`,sq:`<rect x='4' y='4' width='16' height='16' rx='2'/>`});
+const Fl=({c='w-4 h-4'})=><svg className={c+' inline text-orange-400'} viewBox='0 0 24 24' fill='currentColor' stroke='currentColor' strokeWidth='1.2' strokeLinecap='round' strokeLinejoin='round'><path d='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z'/></svg>;
+const TI={glass:'moon',holo:'gem',keys:'keyboard',neon:'twitch',mint:'terminal',cozy:'coffee'};
+Object.assign(IC,{copy:`<rect x='9' y='9' width='13' height='13' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/>`,ext:`<path d='M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/>`});
+const QP=new URLSearchParams(location.search),D0=[30,45,60,90].includes(+QP.get('time'))?+QP.get('time'):60;
+const TH={
+ glass:{name:'Dark Mint',body:'bg-slate-900/80 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl',bodyS:{},font:'',tile:'bg-white/10 backdrop-blur-sm border border-white/15 text-white shadow-inner rounded-xl font-bold',tileS:{},logo:'px-3 py-1 rounded-full bg-teal-400/15 border border-teal-300/30 text-teal-200 font-bold tracking-wide',chip:'px-3 py-1 rounded-full bg-white/10 border border-white/10 text-teal-200 text-sm font-semibold',row:'bg-white/5 border border-white/10 rounded-full',acc:'text-teal-300',rk:'bg-teal-300 text-slate-900'},
+ holo:{name:'Holo Glass',wrap:'bg-gradient-to-r from-pink-300/40 via-cyan-300/40 to-amber-300/40 p-[1px] rounded-2xl',wrapS:{backgroundSize:'300% 300%',animation:'holoShift 40s ease-in-out infinite'},body:'backdrop-blur-xl bg-slate-900/60 rounded-2xl',bodyS:{backgroundImage:'linear-gradient(120deg,rgba(244,114,182,.16),rgba(103,232,249,.14),rgba(252,211,77,.12),rgba(196,181,253,.16),rgba(244,114,182,.16))',backgroundSize:'300% 300%',animation:'holoShift 60s ease-in-out infinite'},font:'',tile:'border border-white/40 rounded-xl font-bold',tileAnim:',holoShift 30s ease-in-out infinite',tileS:{backgroundImage:'linear-gradient(135deg,rgba(255,255,255,.34),rgba(196,181,253,.3),rgba(165,243,252,.34),rgba(253,164,175,.3),rgba(255,255,255,.34))',backgroundSize:'300% 300%',boxShadow:'inset 0 1px 0 rgba(255,255,255,.7),inset 0 -6px 12px rgba(100,116,139,.35),0 0 0 1px rgba(196,181,253,.25),0 2px 8px rgba(0,0,0,.25)',color:'#f8fafc',textShadow:'0 1px 2px rgba(71,85,105,.6)'},logo:'px-3 py-1 rounded-full bg-gradient-to-r from-pink-300/30 via-cyan-300/30 to-violet-300/30 border border-white/20 text-pink-100 font-bold tracking-wide',chip:'px-3 py-1 rounded-full bg-white/10 border border-cyan-200/20 text-cyan-100 text-sm font-semibold',row:'bg-white/5 border border-violet-200/15 rounded-full',acc:'text-cyan-200',rk:'bg-gradient-to-br from-pink-300 to-cyan-300 text-slate-900'},
+ keys:{name:'Tactile Keycaps',body:'rounded-xl border-2 border-slate-600 shadow-2xl',bodyS:{background:'#181a1f',boxShadow:'inset 0 2px 0 rgba(255,255,255,.1),inset 0 -4px 0 rgba(0,0,0,.6),0 20px 40px rgba(0,0,0,.5)'},font:'font-mono',tile:'border-b-4 border-slate-950 bg-slate-800 text-slate-100 rounded-lg shadow-lg font-mono font-black',tileS:{},logo:'px-3 py-1 rounded-md bg-slate-700 border-b-4 border-slate-950 text-amber-300 font-black active:translate-y-0.5 active:border-b-2',chip:'px-3 py-1 rounded-md bg-slate-800 border-b-4 border-slate-950 text-amber-300 text-sm font-bold active:translate-y-0.5 active:border-b-2',row:'bg-slate-800 border-b-4 border-slate-950 rounded-lg',acc:'text-amber-300',rk:'bg-amber-300 text-slate-900 rounded-md'},
+ neon:{name:'Twitch Neon',body:'rounded-2xl border border-[#9146FF]/40 shadow-[0_0_25px_rgba(145,70,255,0.3)]',bodyS:{background:'#0f0c1b'},font:'',tile:'rounded-lg border-2 border-transparent font-black',tileS:{background:'linear-gradient(#18132b,#18132b) padding-box,linear-gradient(135deg,#9146FF,#c084fc) border-box',boxShadow:'0 0 8px rgba(145,70,255,.55)'},neonC:'#c084fc',logo:'px-3 py-1 rounded-lg bg-[#9146FF] text-white font-black tracking-wide shadow-[0_0_14px_rgba(145,70,255,.7)]',chip:'px-3 py-1 rounded-full border border-[#9146FF]/50 bg-[#9146FF]/15 text-[#c084fc] text-sm font-semibold',row:'rounded-full border border-[#9146FF]/30 bg-[#9146FF]/10',acc:'text-[#c084fc]',rk:'bg-[#9146FF] text-white'},
+ mint:{name:'Cyberpunk Mint',body:'border border-emerald-500/30 rounded-sm',bodyS:{background:'#0a0b0e'},font:'font-mono',tile:'rounded-none border border-emerald-500/60 bg-black/60 font-mono font-bold',tileS:{boxShadow:'0 0 6px rgba(0,255,157,.45)'},neonC:'#00ff9d',logo:'px-3 py-1 border border-emerald-400/60 text-[#00ff9d] font-bold tracking-widest',chip:'px-3 py-1 border border-emerald-500/40 text-[#00ff9d] text-sm',row:'border border-emerald-500/30 bg-emerald-500/5',acc:'text-[#00ff9d]',rk:'bg-[#00ff9d] text-black'},
+ cozy:{name:'Cozy Stone',body:'bg-stone-900 rounded-2xl border border-stone-700/60 shadow-lg shadow-black/30',bodyS:{},font:'',tile:'bg-stone-200 text-stone-900 rounded-xl font-bold shadow-[0_3px_0_rgba(120,90,60,.45),0_6px_10px_rgba(0,0,0,.25)]',tileS:{},logo:'px-3 py-1 rounded-full bg-amber-700/30 text-amber-200 font-bold tracking-wide',chip:'px-3 py-1 rounded-full bg-stone-800 border border-stone-700 text-amber-200 text-sm font-semibold',row:'bg-stone-800/70 border border-stone-700/60 rounded-full',acc:'text-amber-300',rk:'bg-amber-600 text-stone-950',win:'bg-[#6f8f5a] text-stone-50 border-2 border-[#8fa876]',lose:'bg-[#a8553f] text-stone-50 border-2 border-[#c4735c]',okBg:'bg-[#6f8f5a]',noBg:'bg-[#a8553f]',okRow:'bg-[#6f8f5a]/50 ring-1 ring-[#8fa876]',warn:'!text-orange-300'}
+};
+Object.assign(TH.holo,{win:'bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-900 border border-white/40',lose:'bg-gradient-to-r from-rose-400 to-pink-500 text-white border border-white/30',okBg:'bg-gradient-to-r from-teal-400 to-emerald-400 !text-slate-900',noBg:'bg-gradient-to-r from-rose-400 to-pink-500',okRow:'bg-teal-400/30 ring-1 ring-teal-300'});
+Object.assign(TH.cozy,{win:'bg-emerald-800 text-stone-100 border-2 border-emerald-700',lose:'bg-amber-800 text-stone-100 border-2 border-amber-700',okBg:'bg-emerald-800',noBg:'bg-amber-800',okRow:'bg-emerald-800/50 ring-1 ring-emerald-600',pod:['bg-gradient-to-r from-amber-500/25 to-transparent ring-1 ring-amber-400/40','bg-gradient-to-r from-stone-300/15 to-transparent ring-1 ring-stone-300/30','bg-gradient-to-r from-orange-700/25 to-transparent ring-1 ring-orange-600/40'],med:['bg-gradient-to-br from-amber-300 to-amber-600 text-stone-950','bg-gradient-to-br from-stone-200 to-stone-400 text-stone-900','bg-gradient-to-br from-orange-400 to-orange-800 text-stone-50']});
+Object.assign(TH.neon,{win:'bg-[#0f2a22] text-emerald-300 border-2 border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.55)]',lose:'bg-[#2a0f1a] text-rose-300 border-2 border-[#f43f5e] shadow-[0_0_12px_rgba(244,63,94,.55)]',okBg:'bg-[#0f2a22] !text-emerald-300 border border-emerald-400',noBg:'bg-[#2a0f1a] !text-rose-300 border border-[#f43f5e]',okRow:'bg-emerald-500/20 ring-1 ring-emerald-400'});
+Object.assign(TH.mint,{win:'bg-black text-[#00ff9d] border-2 border-[#00ff9d] shadow-[0_0_10px_rgba(0,255,157,.5)]',lose:'bg-black text-[#ff0055] border-2 border-[#ff0055] shadow-[0_0_10px_rgba(255,0,85,.5)]',okBg:'bg-black !text-[#00ff9d] border border-[#00ff9d]',noBg:'bg-black !text-[#ff0055] border border-[#ff0055]',okRow:'bg-[#00ff9d]/15 ring-1 ring-[#00ff9d]',med:['bg-[#ffd700] text-black rounded-none','bg-[#c0c0c0] text-black rounded-none','bg-[#cd7f32] text-black rounded-none']});
+Object.assign(TH.keys,{win:'bg-green-700 text-green-50 border-b-4 border-green-950 font-mono',lose:'bg-[#7f1d3a] text-rose-50 border-b-4 border-[#3f0d1c] font-mono',okBg:'bg-green-700',noBg:'bg-[#7f1d3a]',okRow:'bg-green-700/40 border-b-4 border-green-950',med:['bg-yellow-400 text-yellow-950 rounded-md','bg-slate-300 text-slate-900 rounded-md','bg-orange-500 text-orange-950 rounded-md']});
+const POD=['bg-gradient-to-r from-yellow-400/30 to-transparent ring-1 ring-yellow-300/50','bg-gradient-to-r from-slate-300/25 to-transparent ring-1 ring-slate-200/40','bg-gradient-to-r from-orange-500/25 to-transparent ring-1 ring-orange-400/40'];
+const MED=['bg-gradient-to-br from-yellow-200 to-amber-500 text-amber-950 shadow-[0_0_8px_rgba(251,191,36,.6)]','bg-gradient-to-br from-slate-50 to-slate-400 text-slate-900','bg-gradient-to-br from-orange-300 to-amber-700 text-orange-950'];
+Object.values(TH).forEach(v=>{v.pod=v.pod||POD;v.med=v.med||MED;v.win=v.win||'bg-emerald-600 text-white border-2 border-emerald-400';v.lose=v.lose||'bg-rose-600 text-white border-2 border-rose-400';v.okBg=v.okBg||'bg-emerald-600';v.noBg=v.noBg||'bg-rose-600';v.okRow=v.okRow||'bg-emerald-600/50 ring-1 ring-emerald-400';v.warn=v.warn||'!text-red-400'});
+const COL=['#f472b6','#38bdf8','#fbbf24','#a78bfa','#34d399','#fb923c'];
+const GIc=()=><svg viewBox='0 0 48 48' className='w-5 h-5'><path fill='#EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/><path fill='#4285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/><path fill='#FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/><path fill='#34A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/></svg>;
+const DiscIc=()=><svg className='w-5 h-5 inline' viewBox='0 0 24 24' fill='#5865F2'><path d='M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z'/></svg>;
+Object.assign(IC,{swords:`<path d='M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M14.5 6.5 18 3h3v3l-3.5 3.5M5 14l4 4M7 17l-3 3M3 19l2 2'/>`});
+const RI=({n,s})=><span className={'inline-flex shrink-0 '+(s?'[&_svg]:w-3.5 [&_svg]:h-3.5':'[&_svg]:w-4 [&_svg]:h-4')}><Ic n={n}/></span>;
+const KB='px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-mono';
+const RC='p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50';
+const Rk=({i})=>i<3?<span className={['text-yellow-400','text-slate-400','text-amber-600'][i]}><Ic n='trophy'/></span>:<>{i+1}</>;
+const TW0=['melkone01','Slay','Оксана_К','Dmytro_UA','СловоЇд','Марічка','ZenMaster','Тарас','Леся','Богдан','Ната','father_267'].map((name,i)=>({name,score:30-i*2,streak:0}));
+
+// ---- Coop engine (local demo) ----
+// Bot timing: every new word gives each bot an ETA (seconds after the word appears):
+//   reaction 1.5-3 s + typing (word length / 2.5-5 chars per second) + thinking (exponential, mean ~0.9/(skill*difficulty) s).
+// A bot answers once the elapsed time reaches its ETA (about 20% of answers come after one wrong attempt),
+// so nobody answers instantly; harder bots think faster, easier bots slower.
+const BOTS=[['b1','Оксана_К',.07],['b2','Dmytro_UA',.05],['b3','Марічка',.04],['b4','father_267',.06]];
+const botOf=id=>BOTS.find(b=>b[0]===id);
+const MUL={easy:.5,normal:1,hard:1.8};
+const botEta=(len,sk,m)=>1.5+Math.random()*1.5+len/(2.5+Math.random()*2.5)-Math.log(1-Math.random())*.9/(sk*m);
+const mkBt=(c,len)=>Object.fromEntries(c.players.filter(p=>botOf(p.id)).map(p=>[p.id,botEta(len,botOf(p.id)[2],MUL[c.cfg.bots]||1)]));
+const newQ=(c,id,nwf,n)=>{const cf=c.cfg,o=nwf(cf.dict);return{...o,t:cf.t,t0:Date.now(),n,done:cf.win==='rounds'&&n>=cf.goal,bt:botOf(id)?botEta(o.w.length,botOf(id)[2],MUL[cf.bots]||1):0}};
+const initCo=()=>({code:'ANGR-'+(1000+Math.random()*9000|0),hostId:'me',players:[{id:'me',ready:true}],cfg:{mode:'battle',t:30,win:'points',goal:50,dict:'mix',bots:'normal'},g:null});
+const startG=(c,nwf)=>{const ids=c.players.map(p=>p.id),cf=c.cfg,o=nwf(cf.dict);const g={ph:'play',paused:false,n:1,...o,t:cf.t,t0:Date.now(),bt:mkBt(c,o.w.length),win:null,sc:Object.fromEntries(ids.map(i=>[i,0])),st:Object.fromEntries(ids.map(i=>[i,{ok:0,wr:0,fast:null,lng:''}])),pw:{}};if(cf.mode==='sprint')ids.forEach(i=>{g.pw[i]=newQ(c,i,nwf,0)});return{...c,players:c.players.map(p=>({...p,ready:true})),g}};
+const award=(g,id,w,t0,wr)=>{const s0=g.st[id],el=(Date.now()-t0)/1000;return{sc:{...g.sc,[id]:g.sc[id]+w.length},st:{...g.st,[id]:{ok:s0.ok+1,wr:s0.wr+wr,fast:s0.fast==null?el:Math.min(s0.fast,el),lng:w.length>s0.lng.length?w:s0.lng}}}};
+const chk=c=>{const g=c.g,cf=c.cfg;if(cf.mode!=='sprint')return c;const over=cf.win==='points'?Object.values(g.sc).some(v=>v>=cf.goal):Object.values(g.pw).every(q=>q.done);return over?{...c,g:{...g,ph:'end'}}:c};
+const coSolve=(c,id,wr,nwf)=>{const g=c.g,cf=c.cfg;if(!g||g.paused||g.ph==='end')return c;
+ if(cf.mode==='battle'){if(g.ph!=='play')return c;return{...c,g:{...g,...award(g,id,g.w,g.t0,wr),ph:'rev',rt:3,win:id}}}
+ const q=g.pw[id];if(!q||q.done)return c;
+ return chk({...c,g:{...g,...award(g,id,q.w,q.t0,wr),pw:{...g.pw,[id]:newQ(c,id,nwf,q.n+1)}}})};
+const coWrong=c=>c.g?{...c,g:{...c.g,st:{...c.g.st,me:{...c.g.st.me,wr:c.g.st.me.wr+1}}}}:c;
+const tickCo=(c,nwf)=>{const g=c.g,cf=c.cfg;if(!g||g.paused||g.ph==='end')return c;const bots=c.players.filter(p=>botOf(p.id));
+ if(cf.mode==='battle'){
+  if(g.ph==='play'){const n=g.t-1,now=(Date.now()-g.t0)/1000;const b=bots.filter(x=>g.bt[x.id]<=now).sort((x,y)=>g.bt[x.id]-g.bt[y.id])[0];
+   if(b)return coSolve({...c,g:{...g,t:n}},b.id,Math.random()<.2?1:0,nwf);
+   return n<=0?{...c,g:{...g,t:0,ph:'rev',rt:3,win:null}}:{...c,g:{...g,t:n}}}
+  const rt=g.rt-1;if(rt>0)return{...c,g:{...g,rt}};
+  const over=cf.win==='points'?Object.values(g.sc).some(v=>v>=cf.goal):g.n>=cf.goal;
+  if(over)return{...c,g:{...g,ph:'end'}};const o=nwf(cf.dict);
+  return{...c,g:{...g,ph:'play',n:g.n+1,...o,t:cf.t,t0:Date.now(),bt:mkBt(c,o.w.length),win:null}}}
+ let cc=c;
+ for(const p of c.players){if(cc.g.ph==='end')break;const q=cc.g.pw[p.id];if(!q||q.done)continue;
+  if(botOf(p.id)&&(Date.now()-q.t0)/1000>=q.bt){cc=coSolve(cc,p.id,Math.random()<.2?1:0,nwf);continue}
+  const tt=q.t-1;
+  cc=tt>0?{...cc,g:{...cc.g,pw:{...cc.g.pw,[p.id]:{...q,t:tt}}}}:chk({...cc,g:{...cc.g,pw:{...cc.g.pw,[p.id]:newQ(c,p.id,nwf,q.n+1)}}})}
+ return cc};
+const noms=(g,pn)=>{const ids=Object.keys(g.st),S=g.st,r=[];const f=ids.filter(i=>S[i].fast!=null).sort((a,b)=>S[a].fast-S[b].fast)[0];if(f)r.push({ic:'bolt',t:'Блискавка',w:pn(f),v:S[f].fast.toFixed(1)+' с'});const l=ids.filter(i=>S[i].lng).sort((a,b)=>S[b].lng.length-S[a].lng.length)[0];if(l)r.push({ic:'brain',t:'Гострий розум',w:pn(l),v:S[l].lng.toUpperCase()});const ac=i=>S[i].ok/(S[i].ok+S[i].wr);const s=ids.filter(i=>S[i].ok>0).sort((a,b)=>ac(b)-ac(a)||S[b].ok-S[a].ok)[0];if(s)r.push({ic:'target',t:'Снайпер',w:pn(s),v:Math.round(ac(s)*100)+'% точність'});return r};
+
+const SB_URL = 'https://difmfiuopuvoqtpbigys.supabase.co';
+const SB_KEY = 'sb_publishable_H6k062VyZzVLzoe_rj4NDA_iJZi_BOk';
+const sb = (typeof window !== 'undefined' && window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SB_URL, SB_KEY)
+  : null;
+
+function App(){
+ const [dark,setDark]=useState(()=>document.documentElement.classList.contains('dark'));
+ const [muted,setMuted]=useState(()=>LS.get('anag_mute',false));
+ const [tab,setTab]=useState(()=>new URLSearchParams(location.search).get('widget')==='1'?'tw':QP.get('room')?'co':'game');
+ const [words,setWords]=useState(BUILTIN);
+ const [src,setSrc]=useState('Вбудований');
+ const [level,setLevel]=useState('mix');
+ const [mode,setMode]=useState('sprint');
+ const [auth,setAuth]=useState(()=>{const a=LS.get('anag_auth',null);return a&&typeof a==='object'?a:a?{twitch:a==='Twitch',google:a==='Google'}:{}});
+ const authed=!!(auth.twitch||auth.google||auth.discord),activeId=authed?'acc':'guest';
+ const actRef=useRef(activeId);actRef.current=activeId;
+ 
+ const [sbUser,setSbUser]=useState(null);
+ const [sbLeaderboard,setSbLeaderboard]=useState([]);
+ useEffect(()=>{
+  if(!sb)return;
+  const handleSession = (session) => {
+   if(session?.user){
+    setSbUser(session.user);
+    const m = session.user.user_metadata || {};
+    const prov = session.user.app_metadata?.provider || 'oauth';
+    const uName = m.custom_claims?.global_name ||
+                  m.custom_claims?.preferred_username ||
+                  m.preferred_username ||
+                  m.full_name ||
+                  m.user_name ||
+                  m.name ||
+                  session.user.email?.split('@')[0] || '';
+    setAuth(prev => ({ ...prev, [prov.toLowerCase()]: true, supaId: session.user.id }));
+    setAccs(a => {
+     const merged = mergeGuest(a);
+     const currentAcc = merged.acc || blank();
+     const finalName = (currentAcc.name && currentAcc.name !== 'Гравець') ? currentAcc.name : (uName || 'Гравець');
+     const updated = { ...merged, acc: { ...currentAcc, name: finalName } };
+     if(updated.acc.total > 0){
+      pushScoreToCloud(updated.acc.total, finalName);
+     }
+     return updated;
+    });
+    if(window.location.hash.includes('access_token')){
+     window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+   }
+  };
+
+  sb.auth.getSession().then(({data:{session}})=>handleSession(session));
+  const {data:{subscription}}=sb.auth.onAuthStateChange((event,session)=>{
+   if(event==='SIGNED_IN'&&session) handleSession(session);
+   else if(event==='SIGNED_OUT') dropAuth();
+  });
+  return()=>subscription?.unsubscribe();
+ },[]);
+ const fetchGlobalLeaderboard=async()=>{
+  if(!sb)return;
+  try{
+   const {data,error}=await sb.from('leaderboard').select('*').order('score',{ascending:false}).limit(25);
+   if(!error&&data&&data.length){
+    setSbLeaderboard(data.map(r=>({id:r.user_id||r.id,name:r.name,score:r.score,ts:new Date(r.updated_at||Date.now()).getTime(),remote:true})));
+   }
+  }catch(e){}
+ };
+ useEffect(()=>{fetchGlobalLeaderboard()},[tab]);
+ const pushScoreToCloud=async(scoreToPush,playerName)=>{
+  if(!sb||!sbUser)return;
+  try{
+   await sb.from('leaderboard').upsert({
+    user_id:sbUser.id,
+    name:playerName||'Гравець',
+    score:scoreToPush,
+    updated_at:new Date().toISOString()
+   },{onConflict:'user_id'});
+   fetchGlobalLeaderboard();
+  }catch(e){}
+ };
+
+ const [accs,setAccs]=useState(()=>{const s=LS.get('anag_accs',null);if(s)return s;const g=blank();g.name=LS.get('anag_name','')||'';g.st={...g.st,...LS.get('anag_daily',{})};g.total=LS.get('anag_lb',[]).reduce((m,r)=>Math.max(m,r.score||0),0);return{guest:g}});
+ const prof=accs[activeId]||blank(),name=prof.name;
+ useEffect(()=>{LS.set('anag_accs',accs)},[accs]);
+ const [g,setG]=useState(null);
+ const stats=prof.st;
+  const [range,setRange]=useState('all');
+ const [top,setTop]=useState(()=>+new URLSearchParams(location.search).get('top')||5);
+ const [msg,setMsg]=useState('');
+ const [rng,setRng]=useState([5,13]);
+ const [sets,setSets]=useState(()=>LS.get('anag_sets',[]));
+ const [modal,setModal]=useState(false);
+ const [vs,setVs]=useState(null);
+ const [idea,setIdea]=useState('');
+ const wm=new URLSearchParams(location.search).get('widget')==='1';
+ const [ch,setCh]=useState(()=>new URLSearchParams(location.search).get('channel')||LS.get('anag_ch',''));
+ const [conn,setConn]=useState('off');
+ 
+ 
+ const [theme,setTheme]=useState(()=>TH[QP.get('theme')]?QP.get('theme'):LS.get('anag_wtheme','glass'));
+ const [wsnd,setWsnd]=useState(()=>QP.get('sound')!=='0');
+ const [copied,setCopied]=useState(false);
+ const [ask,setAsk]=useState(null);
+ const [toasts,setToasts]=useState([]);
+ const [fb,setFb]=useState({type:'idea',contact:'',text:''});
+ const [fbBusy,setFbBusy]=useState(false);
+ const [co,setCo]=useState(initCo);
+ const [jc,setJc]=useState(()=>QP.get('room')||'');
+ const [cinp,setCinp]=useState('');
+ const [cbad,setCbad]=useState(false);
+ const [cmsg,setCmsg]=useState('');
+ const [ccopied,setCcopied]=useState(false);
+ const [wantPack,setWantPack]=useState(false);
+ const [packFor,setPackFor]=useState('tw');
+ const [pack,setPack]=useState(null);
+ const [packName,setPackName]=useState('');
+ const [neonGlow,setNeonGlow]=useState(()=>QP.get('glow')?QP.get('glow')==='1':LS.get('anag_glow',false));
+ const wsr=useRef(null);
+ const [form,setForm]=useState({id:0,name:'',text:''});
+ const [tw,setTw]=useState({u:[],r:1,w:'книга',s:'гикна',ph:'play',ok:false,sk:false,t:D0,dur:D0,winner:'',best:{name:'—',n:0},run:true,paused:false,timer:QP.get('timer')!=='0',rest:[3,5,10].includes(+QP.get('rest'))?+QP.get('rest'):5,dict:['easy','mid','hard','mix','mine'].includes(QP.get('dict'))?QP.get('dict'):'mix'});
+ const [room,setRoom]=useState(()=>({code:'AN'+(1000+Math.random()*9000|0),t:90,p:['Оксана_К','Dmytro_UA']}));
+ const mref=useRef(muted);mref.current=muted;
+ const play=k=>{if(!mref.current)SFX[k]()};
+
+ useEffect(()=>{document.documentElement.classList.toggle('dark',dark);try{localStorage.setItem('anag_theme',dark?'dark':'light')}catch(e){}},[dark]);
+ useEffect(()=>{LS.set('anag_mute',muted)},[muted]);
+  useEffect(()=>{LS.set('anag_auth',auth)},[auth]);
+
+ useEffect(()=>{(async()=>{
+  try{const r=await fetch('./words_vesum_clean.json');if(r.ok){const a=parse(await r.text());if(a.length>100){setWords(a);setVs(a);setSrc('ВЕСУМ');return}}}catch(e){}
+  const s=LS.get('anag_dict',null);
+  if(s){const a=clean(s.split('\n'));if(a.length>=10){setWords(a);fit(a);setSrc('Ваша база (збережена)')}}
+ })()},[]);
+
+ const byLen=useMemo(()=>{const m={};words.forEach(w=>(m[w.length]=m[w.length]||[]).push(w));return m},[words]);
+ const dict=useMemo(()=>new Set(words),[words]);
+ const lens=Object.keys(byLen).map(Number).sort((a,b)=>a-b);
+ const seen=useRef(new Set());
+ const rnd=arr=>{const S=seen.current;for(let i=0;i<30;i++){const w=arr[Math.random()*arr.length|0];if(!S.has(w)){S.add(w);return w}}let c=arr.filter(w=>!S.has(w));if(!c.length){arr.forEach(w=>S.delete(w));c=arr}const w=c[Math.random()*c.length|0];S.add(w);return w};
+ const fit=a=>{let lo=99,hi=0;a.forEach(w=>{lo=Math.min(lo,w.length);hi=Math.max(hi,w.length)});setRng([lo,hi]);setLevel('mix')};
+ const pick=()=>{const [a,b]=rng;const ls=Object.keys(byLen).map(Number).filter(l=>l>=a&&l<=b);if(!ls.length)return null;const arr=byLen[ls[Math.random()*ls.length|0]];return rnd(arr)};
+ const mk=w=>({word:w,tiles:scramble(w),ans:[],status:'idle',hints:0});
+ const start=()=>{const w=pick();if(!w)return toast('У базі немає слів такої довжини');toast('');setG({...mk(w),mode,time:60,score:0,solved:0,run:0,over:false,paused:false,el:0})};
+ const next=()=>{const w=pick();setG(x=>x&&{...x,...mk(w||x.word)})};
+
+ const live=!!g&&!g.over&&!g.paused&&g.status!=='timeout';
+ useEffect(()=>{if(!live)return;const id=setInterval(()=>setG(x=>{if(!x||x.over)return x;if(x.mode==='zen')return{...x,el:(x.el||0)+1};const t=x.time-1;if(t>0&&t<=10)play('tick');return t<=0?{...x,time:0,status:'timeout',run:0,ans:[]}:{...x,time:t}}),1000);return()=>clearInterval(id)},[live]);
+ const tmo=g&&g.status==='timeout'&&!g.over;
+ useEffect(()=>{if(!tmo)return;play('err');const id=setTimeout(()=>setG(x=>x&&{...x,over:true}),3000);return()=>clearTimeout(id)},[tmo]);
+ const over=g&&g.over;
+ 
+ const add=id=>{if(!g||g.over||g.paused||g.status!=='idle'||g.ans.includes(id))return;play('click');setG(x=>({...x,ans:[...x.ans,id]}))};
+ const back=()=>{if(g&&!g.paused&&g.status==='idle')setG(x=>({...x,ans:x.ans.slice(0,-1)}))};
+ const check=()=>{
+  if(!g||g.over||g.paused||g.status!=='idle'||!g.ans.length)return;
+  const s=g.ans.map(i=>g.tiles[i].ch).join('');
+  if(s.length===g.word.length&&(s===g.word||(dict.has(s)&&srt(s)===srt(g.word)))){
+   play('win');const hn=g.hints>0,run=hn?0:g.run+1,bon=!hn&&run%5===0?5:0;
+   setG(x=>({...x,status:'ok',score:x.score+(hn?0:pts(x.word.length)+bon),solved:x.solved+(hn?0:1),run,time:x.mode==='sprint'?x.time+5:x.time}));
+   credit(hn?0:g.word.length+bon,run,hn);
+   setTimeout(next,750);
+  }else{
+   play('err');setG(x=>({...x,status:'bad',run:0}));
+   setTimeout(()=>setG(x=>x&&{...x,status:'idle',ans:[]}),450);
+  }
+ };
+ useEffect(()=>{const h=e=>{if(!g||g.over)return;if(e.key==='Escape'){setG(x=>({...x,paused:!x.paused}));return}if(g.paused)return;if(e.ctrlKey&&(e.key==='Backspace'||e.key==='Delete')){e.preventDefault();setG(x=>x.status==='idle'?{...x,ans:[]}:x);return}if(e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==='Enter'){e.preventDefault();check()}else if(e.key==='Backspace')back();else if(e.key.length===1){const t=g.tiles.find(t=>t.ch===e.key.toLowerCase()&&!g.ans.includes(t.id));if(t)add(t.id)}};window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h)});
+ const hint=()=>setG(x=>{if(x.paused)return x;const n=Math.min(x.hints+1,x.word.length),u=[];for(let i=0;i<n;i++)u.push(x.tiles.find(t=>t.ch===x.word[i]&&!u.includes(t.id)).id);return{...x,hints:n,ans:u}});
+ const skip=()=>{if(!g||g.paused||g.status!=='idle')return;play('err');setG(x=>({...x,status:'skip',run:0,ans:[]}));setTimeout(next,2200)};
+ const pickT=d=>{if(d==='mine'&&pack)return rnd(pack);const [a,b]=d==='easy'?[5,6]:d==='mid'?[7,8]:d==='hard'?[9,13]:d==='mix'?[5,13]:[1,99];const ls=lens.filter(l=>l>=a&&l<=b);if(!ls.length)return null;const arr=byLen[ls[Math.random()*ls.length|0]];return rnd(arr)};
+ const nw=()=>{const w=pickT(twr.current.dict)||'слово';return{w,s:scramble(w).map(c=>c.ch).join('')}};
+ const twWin=nm=>setTw(t=>{if(t.ph!=='play'||t.paused)return t;const u=(t.u.some(x=>x.name===nm)?t.u:[...t.u,{name:nm,score:0,streak:0}]).map(x=>x.name===nm?{...x,score:x.score+1,streak:x.streak+1}:{...x,streak:0}),s=u.find(x=>x.name===nm).streak;return{...t,u,ph:'rev',ok:true,sk:false,t:t.rest,winner:nm,best:s>=2&&s>t.best.n?{name:nm,n:s}:t.best}});
+ const twSkip=()=>setTw(t=>t.ph==='play'?{...t,ph:'rev',ok:false,sk:true,t:2,paused:false}:t);
+ const twFail=()=>setTw(t=>t.ph==='play'?{...t,ph:'rev',ok:false,sk:false,t:t.rest,u:t.u.map(x=>({...x,streak:0}))}:t);
+ const setDur=d=>setTw(t=>({...t,dur:d,t:t.ph==='play'?d:t.t}));
+ const twClr=()=>setTw(t=>({...t,u:[]}));
+ const twBest=()=>setTw(t=>({...t,best:{name:'—',n:0}}));
+ const twGame=()=>setTw(t=>({...t,r:1,ph:'play',ok:false,sk:false,winner:'',t:t.dur,paused:false,...nwr.current()}));
+ const saveSet=()=>{const w=clean(form.text.split(/[\s,;]+/));if(!form.name.trim())return toast('Введіть назву набору');if(w.length<10)return toast('Мінімум 10 слів у наборі');const s={id:form.id||Date.now(),name:form.name.trim(),words:w};const n=form.id?sets.map(x=>x.id===s.id?s:x):[...sets,s];setSets(n);LS.set('anag_sets',n);setForm({id:0,name:'',text:''});toast('');if(wantPack&&!form.id)selPack(s.name,s.words)};
+ const pickSrc=(l,a)=>{setWords(a);fit(a);setSrc(l);setModal(false);setG(null)};
+ const playSet=s=>pickSrc(s.name,s.words);
+ const twr=useRef(tw);twr.current=tw;const dr=useRef(dict);dr.current=dict;
+ const twConn=()=>{const c=ch.trim().replace(/^#/,'').toLowerCase();if(!c)return;LS.set('anag_ch',c);try{if(wsr.current)wsr.current.close();const s=new WebSocket('wss://irc-ws.chat.twitch.tv:443');wsr.current=s;setConn('connecting');{const sv=LS.get('anag_tw_'+c,null);setTw(t=>({...t,...(sv||{u:[],r:1,best:{name:'—',n:0}}),ph:'play',ok:false,sk:false,winner:'',t:t.dur,run:true,paused:false,...nwr.current()}))}s.onopen=()=>{s.send('NICK justinfan'+(10000+Math.random()*80000|0));s.send('JOIN #'+c)};s.onmessage=e=>String(e.data).split('\r\n').forEach(l=>{if(l.startsWith('PING'))return s.send('PONG :tmi.twitch.tv');if(l.includes(' JOIN #'))setConn('on');const m=/^:(\w+)!\S+ PRIVMSG #\S+ :(.*)$/.exec(l);if(!m)return;const t=twr.current,w=m[2].trim().toLowerCase();if(t.ph==='play'&&!t.paused&&(w===t.w||(dr.current.has(w)&&srt(w)===srt(t.w))))twWin(m[1])});s.onerror=()=>setConn('error');s.onclose=()=>setConn(x=>x==='on'?'off':x)}catch(e){setConn('error')}};
+ const twOff=()=>{if(wsr.current)wsr.current.close();setConn('off')};
+ const nwr=useRef();nwr.current=nw;
+ useEffect(()=>{const id=setInterval(()=>setTw(t=>{if(!t.run||t.paused||(t.ph==='play'&&!t.timer))return t;const n={...t,t:t.t-1};if(n.t>0)return n;return t.ph==='play'?{...n,ph:'rev',ok:false,sk:false,t:t.rest,winner:'',u:n.u.map(x=>({...x,streak:0}))}:{...n,ph:'play',ok:false,sk:false,t:t.dur,r:t.r+1,...nwr.current()}}),1000);return()=>clearInterval(id)},[]);
+ useEffect(()=>{if(wsnd&&tw.ph==='rev'&&(tab==='tw'||wm))(tw.ok?SFX.win:SFX.err)()},[tw.ph,tw.r,tw.ok,tw.sk]);
+   useEffect(()=>{LS.set('anag_wtheme',theme)},[theme]);
+ useEffect(()=>{LS.set('anag_glow',neonGlow)},[neonGlow]);
+ useEffect(()=>{if((tw.dict==='mine'||co.cfg.dict==='mine')&&!sets.some(s=>s.name===packName)){setTw(x=>x.dict==='mine'?{...x,dict:'mix'}:x);setCo(c=>c.cfg.dict==='mine'?{...c,cfg:{...c.cfg,dict:'mix'}}:c);setPack(null);setPackName('')}},[sets]);
+ 
+ useEffect(()=>{if(ch&&conn==='on')LS.set('anag_tw_'+ch.trim().toLowerCase(),{u:tw.u,r:tw.r,best:tw.best})},[tw.u,tw.r,tw.best]);
+ useEffect(()=>{if(wm){document.body.classList.add('wm');if(ch)twConn();else setTw(t=>({...t,run:true,...nwr.current()}))}},[]);
+ const delSet=id=>{const n=sets.filter(x=>x.id!==id);setSets(n);LS.set('anag_sets',n)};
+ const login=async p=>{
+  const prov=p.toLowerCase();
+  if(sb && location.protocol.startsWith('http')){
+   try{
+    const {error}=await sb.auth.signInWithOAuth({
+     provider:prov,
+     options:{redirectTo:window.location.origin+window.location.pathname}
+    });
+    if(error)throw error;
+    return;
+   }catch(err){
+    console.error('Supabase OAuth error:',err);
+    toast('Помилка OAuth: перевірте Client ID у Supabase');
+    return;
+   }
+  }
+  const n={...auth,[prov]:true};
+  setAuth(n);
+  LS.set('anag_auth',n);
+  if(!authed)setAccs(mergeGuest);
+  toast((authed?'Прив’язано ':'Ви увійшли через ')+p+(location.protocol.startsWith('http')?'':' (локальний тест: відкрийте гру через веб-сайт)'));
+ };
+ const dropAuth=()=>{setAuth({});LS.set('anag_auth',{});setAccs(a=>({...a,guest:blank()}))};
+ const unlink=k=>{const n={...auth,[k]:false};if(n.twitch||n.google||n.discord){setAuth(n);LS.set('anag_auth',n);toast('Метод входу відв’язано')}else{dropAuth();toast('Ви вийшли з акаунту')}};
+ const logout=async()=>{if(sb){try{await sb.auth.signOut()}catch(e){}}dropAuth();toast('Ви вийшли з акаунту')};
+
+ const upload=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const a=parse(r.result);if(a.length<10)return toast('Мінімум 10 слів у файлі');const s={id:Date.now(),name:f.name.replace(/\.\w+$/,''),words:a},n=[...sets,s];setSets(n);(wantPack?selPack(s.name,a):pickSrc(s.name,a));toast(LS.set('anag_sets',n)?`Збережено слів: ${a.length}`:'Завантажено, але браузер не дав зберегти (завеликий файл)');setG(null)};r.readAsText(f);e.target.value=''};
+ const resetDict=()=>{try{localStorage.removeItem('anag_dict')}catch(e){}setWords(BUILTIN);setSrc('Вбудований набір');toast('');setG(null)};
+
+ const rows=useMemo(()=>{const wk=Date.now()-6048e5,wd=d=>Object.entries(d||{}).reduce((s,[k,v])=>new Date(k).getTime()>wk?s+v:s,0);const loc=Object.entries(accs).map(([id,p])=>({id,name:p.name.trim()||'Гість',score:range==='week'?wd(p.days):p.total,ts:Date.now()}));
+   const base=sbLeaderboard.length?sbLeaderboard:[];
+   const combined=[...loc];
+   base.forEach(b=>{
+    const isMe = (auth.supaId && b.id === auth.supaId) || combined.some(c=>c.id==='acc' && c.name && b.name && c.name.toLowerCase()===b.name.toLowerCase());
+    if(!isMe){
+     if(!combined.some(c=>c.name && b.name && c.name.toLowerCase()===b.name.toLowerCase())) combined.push(b);
+    } else {
+     const meRow = combined.find(c=>c.id==='acc');
+     if(meRow && b.score > meRow.score) meRow.score = b.score;
+    }
+   });
+   return combined.filter(r=>r.remote||r.score>0||r.id===activeId).sort((a,b)=>b.score-a.score)},[accs,range,activeId,sbLeaderboard,auth.supaId]);
+ const Row=({r,i})=><div className={`flex items-center gap-3 px-3 py-2 rounded-lg ${r.me?'bg-emerald-500/10 ring-1 ring-emerald-500':''}`}><span className='w-12 text-center'>{r.rank||<Rk i={i}/>}</span><span className="flex-1 truncate">{r.name}</span><b className="tabular-nums">{r.score}</b></div>;
+ const me=name.trim()||'Гравець',mi=rows.findIndex(r=>r.id===activeId),vis=tw.on?'':'invisible';
+ const pn=id=>id==='me'?me:(botOf(id)||[0,id])[1];
+ const cor=useRef(co);cor.current=co;
+ const inRef=useRef(null);
+ const cwr=useRef();cwr.current=d=>{const w=pickT(d)||'слово';return{w,s:scramble(w).map(x=>x.ch).join('')}};
+ const openPack=f=>{setPackFor(f);if(sets.length)setModal('pack');else{setWantPack(true);setModal('add')}};
+ const selPack=(n,a)=>{setPack(a);setPackName(n);if(packFor==='co')setCo(c=>({...c,cfg:{...c.cfg,dict:'mine'}}));else setTw(x=>({...x,dict:'mine'}));setWantPack(false);setModal(false)};
+ const cg=co.g,cfg=co.cfg,iHost=co.hostId==='me',sp=cfg.mode==='sprint',cq=cg&&(sp?cg.pw.me:cg),crv=!!cg&&!sp&&cg.ph==='rev';
+ const rdy=co.players.filter(p=>p.ready).length,canStart=co.players.length>=2&&co.players.every(p=>botOf(p.id)||p.ready);
+ const rank=cg?[...co.players].sort((a,b)=>(cg.sc[b.id]||0)-(cg.sc[a.id]||0)):[];
+ const setCfg=(k,v)=>setCo(c=>({...c,cfg:{...c.cfg,[k]:v}}));
+ const leaveLobby=()=>{const rest=co.players.filter(p=>p.id!=='me'),nh=rest.length&&co.hostId==='me'?rest[0].id:null;toast('Ви вийшли з кімнати '+co.code+(nh?'. Корона перейшла до '+pn(nh):'')+'. Створено нову кімнату.');setCo({...initCo(),players:[{id:'me',ready:true}]});setCinp('')};
+ const chName=v=>setAccs(a=>{const id=actRef.current,p=a[id]||blank();return{...a,[id]:{...p,name:v}}});
+ const credit=(gain,run,hn)=>setAccs(a=>{const id=actRef.current,p=a[id]||blank(),d=today(),s={...p.st};let days=p.days;if(!hn){if(s.date!==d){s.date=d;s.count=0}if(s.last!==d){s.streak=s.last===yest()?s.streak+1:1;s.last=d}s.count++;s.best=Math.max(s.best||0,run>=2?run:0)}if(gain>0){days={...days,[d]:(days[d]||0)+gain};if(id==='acc')pushScoreToCloud(p.total+gain,p.name);};return{...a,[id]:{...p,total:p.total+gain,days,st:s}}});
+ const goLobby=()=>setCo(c=>({...c,g:null,players:c.players.map(p=>({...p,ready:!!botOf(p.id)}))}));
+ const toast=m=>{if(!m)return;const id=Date.now()+Math.random();setToasts(a=>[...a,{id,m}]);setTimeout(()=>setToasts(a=>a.map(x=>x.id===id?{...x,out:1}:x)),7600);setTimeout(()=>setToasts(a=>a.filter(x=>x.id!==id)),8000)};
+ const sendFb=async()=>{if(!fb.text.trim())return toast('Напишіть повідомлення');setFbBusy(true);try{const ct=fb.contact.trim(),r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:'6f345d3e-26f7-4fc7-942b-b7ff8c52e7af',subject:'Анаграма: '+(fb.type==='bug'?'Багрепорт':'Ідея'),type:fb.type==='bug'?'Баг':'Ідея',name:ct||'Гравець',email:ct.includes('@')?ct:undefined,message:fb.text})});const j=await r.json();if(j.success){toast('Дякуємо! Ваше повідомлення надіслано розробнику');setFb({...fb,text:''});setModal(false)}else toast('Не вдалося надіслати, спробуйте пізніше')}catch(e){toast('Не вдалося надіслати: немає з’єднання')}setFbBusy(false)};
+ const togglePause=()=>setCo(c=>{const g=c.g;if(!g)return c;if(!g.paused)return{...c,g:{...g,paused:true,pAt:Date.now()}};const d=Date.now()-g.pAt;return{...c,g:{...g,paused:false,t0:g.t0+d,pw:Object.fromEntries(Object.entries(g.pw).map(([k,q])=>[k,{...q,t0:q.t0+d}]))}}});
+ const startCo=()=>{if(canStart)setCo(c=>startG(c,cwr.current))};
+ const addBot=()=>setCo(c=>{const b=BOTS.find(x=>!c.players.some(p=>p.id===x[0]));return b?{...c,players:[...c.players,{id:b[0],ready:true}]}:c});
+ const copyRoom=()=>{try{navigator.clipboard.writeText(location.origin+location.pathname+'?room='+co.code)}catch(e){}setCcopied(true);setTimeout(()=>setCcopied(false),1800)};
+ const joinRoom=()=>{const code=jc.trim().toUpperCase();if(!/^[A-Z]{4}-\d{4}$/.test(code))return toast('Код має вигляд ANGR-4821');toast('Ви приєдналися до кімнати: хост керує налаштуваннями, гра стартує, коли всі готові.');setCo({...initCo(),code,hostId:'b1',players:[{id:'b1',ready:true},{id:'me',ready:false},{id:'b2',ready:true}]})};
+ const coGuess=(v,enter)=>{const c=cor.current,g=c.g;if(!g||g.paused||g.ph==='end')return;const s2=c.cfg.mode==='sprint',q=s2?g.pw.me:g;if(!q||q.done||(!s2&&g.ph!=='play'))return;const s=v.trim().toLowerCase();if(!s)return;
+  if(s===q.w||(dr.current.has(s)&&srt(s)===srt(q.w))){setCinp('');setCo(c2=>coSolve(c2,'me',0,cwr.current))}
+  else if(enter){setCinp('');setCbad(true);setTimeout(()=>setCbad(false),450);setCo(coWrong)}};
+ useEffect(()=>{const id=setInterval(()=>setCo(c=>tickCo(c,cwr.current)),1000);return()=>clearInterval(id)},[]);
+ useEffect(()=>{const id=setInterval(()=>setCo(c=>{if(c.g)return c;const nr=c.players.find(p=>botOf(p.id)&&!p.ready);if(nr&&Math.random()<.35)return{...c,players:c.players.map(p=>p===nr?{...p,ready:true}:p)};if(c.hostId!=='me'&&c.players.length>=2&&c.players.every(p=>p.ready))return startG(c,cwr.current);return c}),1500);return()=>clearInterval(id)},[]);
+ useEffect(()=>{if(cg&&cg.ph==='rev')play(cg.win?'win':'err');if(cg&&cg.ph==='end')play('win')},[cg&&cg.ph,cg&&cg.n]);
+ useEffect(()=>{if(!co.players.some(p=>p.id==='me')){toast('Вас кікнув '+pn(co.hostId)+' з кімнати '+co.code);setCo({...initCo(),players:[{id:'me',ready:true}]})}},[co.players]);
+ useEffect(()=>{setCinp('');if(inRef.current)inRef.current.focus()},[cq&&cq.w,cg&&cg.ph,cg&&cg.paused]);
+ const Seg=(lab,items,val,on)=><div className='flex flex-wrap items-center gap-2'><span className='text-xs opacity-70 w-28'>{lab}</span>{items.map(([k,l])=><button key={k} disabled={!iHost} className={sel(val===k)+' !py-1 text-sm disabled:opacity-60'} onClick={()=>on(k)}>{l}</button>)}</div>;
+ const wurl=location.origin+location.pathname+'?widget=1&channel='+(ch.trim()||'назва')+'&theme='+theme+(TH[theme]&&TH[theme].neonC?'&glow='+(neonGlow?1:0):'')+'&time='+tw.dur+'&top='+top+'&dict='+(tw.dict==='mine'?'mix':tw.dict)+'&rest='+tw.rest+'&timer='+(tw.timer?1:0)+'&sound='+(wsnd?1:0);
+ const th=TH[theme]||TH.glass;
+ const ts=th.neonC?{...th.tileS,...(neonGlow?{color:th.neonC,textShadow:'0 0 12px '+th.neonC}:{color:'#fff',textShadow:'none'})}:th.tileS;
+ const lst=[...tw.u].sort((a,b)=>b.score-a.score).slice(0,top);
+ const tabs=[['game','gamepad','Гра'],['lb','trophy','Топ'],['tw','twitch','Інтеграція'],['co','users','Кооп']];
+ const n=g?g.word.length:5;
+ const td=stats.date===today()?stats.count:0,st=stats.last===today()||stats.last===yest()?stats.streak:0;
+
+ return <div className="max-w-3xl mx-auto p-4 flex flex-col gap-6 min-h-screen">
+  <header className='flex flex-wrap items-center justify-between gap-3'>
+   <button className='flex items-center gap-2' title='Головне меню' onClick={()=>{setTab('game');setG(null)}}><div className='flex items-end -space-x-1.5' aria-hidden='true'><span className='w-7 h-7 rounded-lg bg-emerald-600 text-white text-sm font-extrabold flex items-center justify-center -rotate-12 shadow'>Н</span><span className='w-7 h-7 rounded-lg bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-extrabold flex items-center justify-center rotate-6 -translate-y-1.5 shadow'>А</span><span className='w-7 h-7 rounded-lg bg-emerald-500 text-white text-sm font-extrabold flex items-center justify-center -rotate-3 shadow'>Г</span></div><h1 className='text-xl font-extrabold tracking-wide'>АНАГРАМА</h1></button>
+   <nav className='order-last w-full md:order-none md:w-auto flex flex-wrap justify-center gap-2'>{tabs.map(([k,i,l])=><button key={k} onClick={()=>setTab(k)} className={sel(tab===k)+' text-sm !px-3 flex items-center gap-1.5'}>{i==='twitch'?<Tw/>:<Ic n={i}/>} {l}</button>)}</nav>
+   <div className="flex gap-2">
+    <button className={btn} onClick={()=>setMuted(!muted)} title="Звук"><Ic n={muted?'mute':'vol'}/></button>
+    <button className={btn} onClick={()=>setDark(!dark)} title='Світла / Темна тема'><Ic n={dark?'sun':'moon'}/></button>
+    <button className={btn+' flex items-center gap-1.5 whitespace-nowrap'} onClick={()=>setModal('prof')}><Ic n='user'/> {name.trim()||(authed?'Гравець':'Гість')}{authed&&<span className='w-2 h-2 rounded-full bg-emerald-500' title='Онлайн'/>}</button>
+   </div>
+  </header>
+  
+  <div className='fixed bottom-24 right-6 z-[60] flex flex-col gap-2 pointer-events-none'>{toasts.map(x=><div key={x.id} className='px-4 py-3 rounded-xl bg-slate-900 text-white text-sm shadow-xl border border-white/10 max-w-xs' style={{animation:x.out?'toastOut .4s ease forwards':'toastIn .25s ease'}}>{x.m}</div>)}</div>
+  {modal==='add'&&<div className='fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4' onClick={()=>setModal(false)}><div className={card+' w-full max-w-md max-h-[85vh] overflow-auto space-y-3'} onClick={e=>e.stopPropagation()}>
+   <div className='flex justify-between items-center'><h2 className='font-bold'>Власний пак</h2><button onClick={()=>setModal(false)}><Ic n='x'/></button></div>
+   <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder='Назва набору' className={inp}/>
+   <textarea value={form.text} onChange={e=>setForm({...form,text:e.target.value})} rows={4} placeholder='Слова через пробіл, кому або з нового рядка (мінімум 10)' className={inp}/>
+   <label className={btn+' cursor-pointer block text-center'}><Ic n='up'/> Завантажити з файлу (.txt / .json)<input type='file' accept='.json,.txt' className='hidden' onChange={upload}/></label>
+   <p className='text-xs opacity-60'>Мінімум 10 слів у файлі або наборі</p>
+   {form.id?<div className='flex gap-2'><button className={pri+' flex-1'} onClick={saveSet}>Зберегти</button><button className={btn+' flex-1'} onClick={()=>setForm({id:0,name:'',text:''})}>Скасувати зміни</button></div>:<button className={pri+' w-full'} onClick={saveSet}><Ic n='plus'/> Створити набір</button>}
+   {msg&&<p className='text-sm text-amber-500'>{msg}</p>}
+   {sets.map(s=><div key={s.id} className='flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700'><div className='flex-1 min-w-0'><div className='truncate font-semibold'>{s.name}</div><div className='text-xs opacity-60'>слів: {s.words.length}</div></div><button title='Грати' onClick={()=>playSet(s)}><Ic n='play'/></button><button title='Редагувати' onClick={()=>setForm({id:s.id,name:s.name,text:s.words.join('\n')})}><Ic n='edit'/></button><button title='Видалити' onClick={()=>setAsk({msg:'Видалити цей пак слів?',fn:()=>delSet(s.id)})}><Ic n='trash'/></button></div>)}
+  </div></div>}
+
+  {ask&&<Modal t='Підтвердження' close={()=>setAsk(null)}><p className='text-sm'>{ask.msg}</p><div className='flex gap-2'><button className={pri} onClick={()=>{ask.fn();setAsk(null)}}>Так, підтвердити</button><button className={btn} onClick={()=>setAsk(null)}>Скасувати</button></div></Modal>}
+  {modal==='pack'&&<Modal t='Мій пак для стріму' close={()=>setModal(false)}><div className='space-y-2'>{sets.map(s=>[s.name,s.words]).map(([n,a])=><button key={n} className={btn+' w-full flex justify-between'} onClick={()=>selPack(n,a)}><span>{n}</span><span className='opacity-60'>{a.length} слів</span></button>)}<button className={pri+' w-full'} onClick={()=>{setWantPack(true);setModal('add')}}><Ic n='plus'/> Власний пак</button></div></Modal>}
+  {modal==='rules'&&<Modal t='Про гру та правила' close={()=>setModal(false)}><div className='space-y-3.5 text-sm text-slate-700 dark:text-slate-300'>
+   <div className={RC}><div className='flex items-center gap-2 font-semibold text-emerald-600 dark:text-emerald-400 mb-1.5'><RI n='gamepad'/><span>Основні правила:</span></div>
+    <div className='text-xs leading-relaxed'>Складіть слово з перемішаних літер за допомогою клавіатури або клікаючи по плитках. Натисніть <kbd className={KB}>Enter</kbd> для перевірки.</div>
+    <div className='flex items-start gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-200 dark:border-slate-700/40'><span className='mt-0.5'><RI n='sparkles' s/></span><span><b>Альтернативні слова:</b> якщо з цих літер можна утворити інше валідне українське слово зі словника, воно також зараховується!</span></div></div>
+   <div className={RC}><div className='flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400 mb-1.5'><RI n='star'/><span>Нарахування очок:</span></div>
+    <div className='text-xs leading-relaxed'><b>1 літера = 1 очко</b> (довші слова дають більше очок). За кожні 5 розгаданих слів поспіль без помилок нараховується бонус <b>+5 очок</b>. Підказка, пропуск або помилка скидають серію (рахується від 2 слів). Слово з підказкою не дає очок і не зараховується у статистику розгаданих слів (підказки — для тренування!).</div></div>
+   <div className={RC}><div className='flex items-center gap-2 font-semibold text-cyan-600 dark:text-cyan-400 mb-1.5'><RI n='swords'/><span>Ігрові режими:</span></div>
+    <ul className='space-y-1.5 text-xs list-none'>
+     <li>• <b>Челендж:</b> 60 секунд на старті; кожне розгадане слово додає +5 сек до таймера.</li>
+     <li>• <b>Пісочниця:</b> розслаблена гра без ліміту часу з підказками, паузою та пропуском слів.</li>
+     <li>• <b>Кооп («Битва за літери»):</b> змагання з друзями на швидкість за одне спільне слово.</li>
+     <li>• <b>Кооп («Спринт»):</b> кожен розгадує свій ланцюжок слів зі своїм таймером на слово.</li></ul></div>
+   <div className={RC}><div className='flex items-center gap-2 font-semibold text-purple-600 dark:text-purple-400 mb-1.5'><RI n='trophy'/><span>Титули фіналу в Коопі:</span></div>
+    <div className='space-y-1 text-xs mt-1'>
+     <div className='flex items-center gap-2'><RI n='bolt' s/><span><b>Блискавка:</b> гравець із найшвидшою правильною відповіддю за матч.</span></div>
+     <div className='flex items-center gap-2'><RI n='brain' s/><span><b>Гострий розум:</b> автор найдовшого розгаданого слова.</span></div>
+     <div className='flex items-center gap-2'><RI n='target' s/><span><b>Снайпер:</b> гравець із найвищою точністю без хибних спроб.</span></div></div></div>
+   <div className={RC}><div className='flex items-center gap-2 font-semibold mb-1.5'><Tw/><span>Інтеграція Twitch:</span></div>
+    <div className='text-xs leading-relaxed'>Посилання на оверлей працює напряму в OBS Browser Source: чат читається без окремого сервера.</div></div>
+   <div className={RC}><div className='flex items-center gap-2 font-semibold mb-1.5'><RI n='keyboard'/><span>Гарячі клавіші:</span></div>
+    <div className='text-xs text-slate-500 dark:text-slate-400 space-y-1'>
+     <div><kbd className={KB}>Esc</kbd> — пауза / вихід у меню</div>
+     <div><kbd className={KB}>Enter</kbd> — підтвердити результат</div>
+     <div><kbd className={KB}>Backspace</kbd> — стерти останню літеру</div>
+     <div><kbd className={KB}>Ctrl + Backspace</kbd> — очистити все поле вводу</div></div></div>
+  </div></Modal>}
+  {modal==='idea'&&<Modal t='Запропонувати ідею / Багрепорт' close={()=>setModal(false)}>
+   <div className='flex gap-2'>{[['idea','Ідея'],['bug','Баг']].map(([k,l])=><button key={k} className={sel(fb.type===k)+' flex-1 !py-1 text-sm'} onClick={()=>setFb({...fb,type:k})}>{l}</button>)}</div>
+   <input value={fb.contact} onChange={e=>setFb({...fb,contact:e.target.value})} placeholder='Нікнейм або пошта (за бажанням)' className={inp}/>
+   <textarea value={fb.text} onChange={e=>setFb({...fb,text:e.target.value})} rows={5} placeholder='Опишіть ідею або помилку' className={inp}/>
+   <button className={pri+' w-full disabled:opacity-60'} disabled={fbBusy} onClick={sendFb}>{fbBusy?'Надсилаємо…':'Надіслати'}</button></Modal>}
+  {modal==='prof'&&<Modal t='Профіль' close={()=>setModal(false)}>
+   <div className='flex items-center gap-2 text-sm'>{authed?<span className='px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-xs font-bold flex items-center gap-1'><span className='w-2 h-2 rounded-full bg-emerald-500'/> Онлайн</span>:<span className='opacity-60 text-xs'>Гість: рекорди зберігаються лише на цьому пристрої</span>}</div>
+   <input value={name} onChange={e=>chName(e.target.value)} maxLength={20} placeholder='Нікнейм' className={inp}/>
+   <div className='text-xs opacity-60'>{authed?'Можна прив’язати обидва методи входу до одного акаунту':'Оберіть метод входу'}</div>
+   {[['twitch','Twitch',<Tw/>],['google','Google',<GIc/>],['discord','Discord',<DiscIc/>]].map(([k,l,ic])=><div key={k} className='flex items-center gap-2'>{auth[k]?<><span className={btn+' flex-1 flex items-center justify-center gap-2'}>{ic} {l}: прив’язано</span><button className={btn} onClick={()=>unlink(k)}>Відв’язати</button></>:<button className={btn+' w-full flex items-center justify-center gap-2'} onClick={()=>login(l)}>{ic} {authed?'Прив’язати '+l:'Увійти через '+l}</button>}</div>)}
+   {authed&&<button className={btn+' w-full text-red-500'} onClick={logout}>Вийти з акаунту</button>}</Modal>}
+  {tab==='game'&&(g?<div className="space-y-5">
+   <div className="flex flex-wrap items-center justify-between gap-2 font-semibold">
+    <div className='flex gap-2'><button className={btn+' !py-1 text-sm'} onClick={()=>setG(null)}>← Меню</button><button className={btn+' !py-1 text-sm'} onClick={()=>setG(x=>({...x,paused:!x.paused}))}><Ic n={g.paused?'play':'pause'}/> {g.paused?'Продовжити':'Пауза'}</button>{g.mode==='zen'&&<button className={btn+' !py-1 text-sm'} onClick={hint} disabled={g.paused||g.status!=='idle'}><Ic n='bulb'/> Підказка</button>}</div>
+    <span title='Очки · серія · розгадано слів'><Ic n='star'/> {g.score} · <Fl/> {g.run>=2?g.run:0} · <Ic n='check'/> {g.solved}</span>
+   </div>
+   {g.paused&&!g.over?<div className={card+' text-center space-y-3'}><div className='text-xl font-bold'>Пауза</div><div className='flex gap-2 justify-center'><button className={pri} onClick={()=>setG(x=>({...x,paused:false}))}><Ic n='play'/> Продовжити</button><button className={btn} onClick={()=>setG(null)}>Меню</button></div><p className='text-xs opacity-60'>Esc — пауза / продовження</p></div>:g.over?<div className={card+' text-center space-y-3'}>
+    <div className="text-xl font-bold">Час вийшов!</div>
+    <div>Рахунок: <b>{g.score}</b> · розгадано слів: <b>{g.solved}</b></div>
+    <div className="flex gap-2 justify-center"><button className={pri} onClick={start}>Наступний раунд</button><button className={btn} onClick={()=>setG(null)}>Меню</button></div>
+   </div>:<>
+    <div className='text-center text-xs text-slate-400 font-medium'>{n} літер · <span className={(g.mode==='sprint'&&g.time<=10?'text-red-500 animate-pulse ':'')+'inline-flex items-center gap-1 align-middle [&_svg]:w-3.5 [&_svg]:h-3.5'}><Ic n='timer'/> {mmss(g.mode==='sprint'?g.time:(g.el||0))}</span></div>
+    <div className={`flex flex-nowrap justify-center items-center overflow-hidden px-3 py-3 gap-1 ${g.status==='bad'?'shake':''}`}>
+     {[...g.word].map((_,i)=>{const rv=g.status==='timeout'||g.status==='skip',id=g.ans[i],t=rv?{ch:g.word[i]}:id!=null?g.tiles[id]:null;return <T key={i} n={n} ch={t&&t.ch} empty={!t} ok={g.status==='ok'} rd={rv} onClick={()=>t&&g.status==='idle'&&setG(x=>({...x,ans:x.ans.filter((_,j)=>j!==i)}))}/>})}
+    </div>
+    <div className="flex flex-nowrap justify-center items-center overflow-hidden px-3 py-3 gap-1">{g.tiles.map(t=><T key={t.id} i={t.id} n={n} ch={t.ch} ghost={g.ans.includes(t.id)} onClick={()=>add(t.id)}/>)}</div>
+    <div className="flex flex-wrap justify-center gap-2">
+     <button className={btn} onClick={back}><Ic n='del'/></button>
+     <button className={btn} onClick={()=>setG(x=>({...x,ans:[]}))}>Очистити</button>
+     <button className={pri} onClick={check}><Ic n='check'/> Перевірити</button>
+     <button className={btn} onClick={skip}><Ic n='skip'/> Пропустити</button>
+    </div>
+    
+   </>}
+  </div>:<div className="space-y-4">
+   <section className={card}><h2 className="font-bold mb-2">Рівень</h2><div className="grid grid-cols-2 gap-2">{Object.entries(LV).map(([k,v])=><button key={k} className={sel(level===k)} onClick={()=>{setLevel(k);setRng([v[2],v[3]])}}>{v[0]}<div className="text-xs font-normal opacity-60">{v[1]} літер</div></button>)}</div></section>
+   {level==='mix'&&<section className={card}><h2 className='font-bold mb-2'>Довжина слів</h2><div className='flex flex-wrap items-center gap-2 text-sm'>від <select value={rng[0]} onChange={e=>{const v=+e.target.value;setRng([v,Math.max(v,rng[1])]);setLevel('mix')}} className={inp+' !w-auto !py-1'}>{lens.map(l=><option key={l}>{l}</option>)}</select> до <select value={rng[1]} onChange={e=>{const v=+e.target.value;setRng([Math.min(v,rng[0]),v]);setLevel('mix')}} className={inp+' !w-auto !py-1'}>{lens.map(l=><option key={l}>{l}</option>)}</select> літер <button className={btn+' !py-1'} onClick={()=>{setRng([rng[1],rng[1]]);setLevel('mix')}}>лише {rng[1]}</button></div></section>}
+   <section className={card}><h2 className="font-bold mb-2">Режим</h2><div className="grid grid-cols-2 gap-2">
+    <button className={sel(mode==='sprint')} onClick={()=>setMode('sprint')}><Ic n='timer'/> Челендж на час</button>
+    <button className={sel(mode==='zen')} onClick={()=>setMode('zen')}><Ic n='leaf'/> Пісочниця</button></div>
+    <p className="text-xs opacity-60 mt-2">{mode==='sprint'?'60 секунд, +5 с за слово. 1 літера = 1 очко, +5 очок за кожні 5 слів поспіль без помилок і підказок.':'Без таймера: підказки та пропуск слів.'}</p></section>
+      <button className={pri+' w-full'} onClick={start}>Почати гру</button>
+   <section className={card+' grid grid-cols-3 text-center gap-2'}>
+    <div><b className="text-xl">{td}</b><div className="text-xs opacity-60">Розгадано сьогодні</div></div>
+    <div><b className="text-xl"><Fl c='w-5 h-5'/> {st}</b><div className="text-xs opacity-60">Стрік днів</div></div>
+    <div><b className="text-xl">{stats.best||0}</b><div className="text-xs opacity-60">Краща серія слів</div></div>
+   </section>
+   <section className={card+' space-y-2'}>
+    <h2 className="font-bold">Словник</h2>
+    <div className='flex flex-wrap gap-2 text-sm'><button className={sel(src==='Вбудований')} onClick={()=>pickSrc('Вбудований',BUILTIN)}>Вбудований ({BUILTIN.length})</button>{vs&&<button className={sel(src==='ВЕСУМ')} onClick={()=>pickSrc('ВЕСУМ',vs)}>ВЕСУМ ({vs.length})</button>}{sets.map(s=><button key={s.id} className={sel(src===s.name)} onClick={()=>pickSrc(s.name,s.words)}>{s.name} ({s.words.length} слів)</button>)}</div>
+    <p className='text-xs opacity-60'>Активний набір: {src} · слів: {words.length}</p>
+    <div className="flex flex-wrap gap-2">
+     <button className={btn} onClick={()=>{setWantPack(false);setModal('add')}}><Ic n='plus'/> Власний пак</button>
+     
+    </div>
+    
+    {msg&&<p className='text-sm text-amber-500'>{msg}</p>}
+   </section>
+  </div>)}
+
+  {tab==='lb'&&<section className={card+' space-y-2'}>
+   <div className="flex gap-2 mb-2">{[['week','Цей тиждень'],['all','Весь час']].map(([k,l])=><button key={k} className={sel(range===k)+' text-sm'} onClick={()=>setRange(k)}>{l}</button>)}</div>
+   <div className='flex px-3 text-xs opacity-60'><span className='w-12 text-center'>Місце</span><span className='flex-1'>Гравець</span><span>Очки</span></div>
+   {(()=>{
+    const authRows = rows.filter(r => r.id !== 'guest');
+    const top10 = authRows.slice(0, 10);
+    const myIndex = authed ? authRows.findIndex(r => r.id === 'acc') : -1;
+    const guestItem = rows.find(r => r.id === 'guest') || { id: 'guest', name: (accs.guest?.name?.trim() || 'Гість'), score: 0 };
+    const guestRank = authRows.filter(r => r.score > guestItem.score).length + 1;
+    return (<>
+      {top10.length > 0 ? top10.map((r, i) => <Row key={i} r={authed && r.id === 'acc' ? { ...r, me: 1 } : r} i={i} />) : <div className='py-6 text-center text-sm opacity-60'>Поки що немає записів у рейтингу. Зіграйте раунд, щоб стати першим!</div>}
+      {authed && myIndex >= 10 && (
+        <div className='border-t border-slate-300 dark:border-slate-600 pt-2'>
+          <Row r={{ ...authRows[myIndex], rank: '#' + (myIndex + 1), me: 1 }} i={myIndex} />
+        </div>
+      )}
+      {!authed && (
+        <div className='border-t border-slate-300 dark:border-slate-600 pt-2'>
+          <Row r={{ ...guestItem, rank: '#' + guestRank, me: 1 }} />
+        </div>
+      )}
+    </>);
+   })()}
+   <p className="text-xs opacity-50">Глобальний рейтинг оновлюється автоматично.</p>
+   {!authed&&<p className='text-xs opacity-60 flex items-center gap-1.5 pt-1'><Ic n='lock'/> Щоб ваші рекорди фіксувалися у глобальному рейтингу — авторизуйтесь через Профіль</p>}
+  </section>}
+
+  {tab==='co'&&<section className='space-y-4'>
+   {!cg&&<>
+    <div className={card+' space-y-3'}>
+     <div className='flex flex-wrap items-center justify-between gap-3'>
+      <div><div className='text-xs uppercase tracking-wider opacity-50'>Код кімнати</div><div className='text-3xl font-black font-mono tracking-widest text-emerald-600 dark:text-emerald-400'>{co.code}</div></div>
+      <button className={pri+' flex items-center gap-2'} onClick={copyRoom}><Ic n='copy'/> {ccopied?'Скопійовано!':'Скопіювати посилання для друзів'}</button>
+     </div>
+     <div className='flex flex-wrap gap-2'><input value={jc} onChange={e=>setJc(e.target.value)} placeholder='Введіть код кімнати' className={inp+' !w-auto flex-1 min-w-[10rem] font-mono uppercase'}/><button className={btn} onClick={joinRoom}>Увійти</button></div>
+     
+    </div>
+    <div className={card+' space-y-2'}>
+     <div className='flex items-center justify-between'><div className='flex items-center gap-2'><h2 className='font-bold'>Гравці ({co.players.length})</h2>{iHost&&co.players.some(x=>!botOf(x.id)&&x.id!==co.hostId)&&<span className='text-xs font-normal opacity-50'>(ПКМ — передати корону)</span>}</div><div className='flex gap-2'>{iHost&&<button className={btn+' !py-1 text-sm'} onClick={addBot}><Ic n='plus'/> Додати бота</button>}<button className={btn+' !py-1 text-sm'} onClick={leaveLobby}><Ic n='login'/> Вийти з лобі</button></div></div>
+     {co.players.map(p=>{
+      const canGiveCrown = iHost && !botOf(p.id) && p.id !== co.hostId;
+      return (
+       <div key={p.id} onContextMenu={e=>{if(canGiveCrown){e.preventDefault();setCo(c=>({...c,hostId:p.id}));toast('👑 Корону хоста передано гравцю '+pn(p.id))}}} title={canGiveCrown?'ПКМ: передати корону хоста':undefined} className={`flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 transition ${canGiveCrown?'cursor-pointer hover:ring-1 hover:ring-amber-400/60':''}`}>
+        <span className='w-8 h-8 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center'>{pn(p.id)[0].toUpperCase()}</span>
+        <span className='flex-1 truncate font-semibold flex items-center gap-2'>{pn(p.id)}{botOf(p.id)&&<span className='text-xs opacity-50'> (бот)</span>}{p.id===co.hostId&&<span className='text-amber-500' title='Хост кімнати'><Ic n='crown'/></span>}{p.id==='me'&&<span className='text-xs opacity-50'>(ви)</span>}</span>
+        <span className={'px-2 py-0.5 rounded-full text-xs font-bold '+(p.ready?'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300':'bg-amber-400/20 text-amber-600 dark:text-amber-300')}>{p.ready?'Готовий':'Очікує'}</span>
+        {p.id==='me'?<button className={btn+' !py-1 text-sm'} onClick={()=>setCo(c=>({...c,players:c.players.map(x=>x.id==='me'?{...x,ready:!x.ready}:x)}))}>{p.ready?'Скасувати':'Я готовий'}</button>:iHost&&<div className='flex items-center gap-1.5'>{canGiveCrown&&<button className={btn+' !py-1 text-xs text-amber-500 flex items-center gap-1'} title='Зробити хостом' onClick={()=>setCo(c=>({...c,hostId:p.id}))}><Ic n='crown'/> Хост</button>}<button className='text-red-500 text-sm flex items-center gap-1' onClick={()=>setCo(c=>({...c,players:c.players.filter(x=>x.id!==p.id)}))}><Ic n='x'/> Кікнути</button></div>}
+       </div>
+      );
+     })}
+    </div>
+    <div className={card+' space-y-3'}>
+     <h2 className='font-bold'>Налаштування матчу {!iHost&&<span className='text-xs font-normal opacity-60'>(керує хост)</span>}</h2>
+     {Seg('Режим',[['battle','Битва за літери'],['sprint','Індивідуальний спринт']],cfg.mode,v=>setCfg('mode',v))}
+     <p className='text-xs opacity-60'>{sp?'Кожен розгадує власний ланцюжок слів зі своїм таймером на слово, а таблиця оновлюється наживо.':'Одне спільне слово для всіх: хто перший надрукує правильно, забирає очки.'}</p>
+     {Seg('Таймер на слово',[20,30,45,60,90].map(d=>[d,d+'с']),cfg.t,v=>setCfg('t',v))}
+     {Seg('Умова перемоги',[['points','Перший до X очок'],['rounds','Фіксовано слів']],cfg.win,v=>setCo(c=>({...c,cfg:{...c.cfg,win:v,goal:v==='points'?50:10}})))}
+     {Seg('Ціль',(cfg.win==='points'?[50,100,150]:[10,15,20]).map(d=>[d,String(d)]),cfg.goal,v=>setCfg('goal',v))}
+     {Seg('Словник',[['easy','Легкий'],['mid','Середній'],['hard','Складний'],['mix','Змішаний'],['mine',cfg.dict==='mine'&&packName?'Власний пак: '+packName:'Власний пак']],cfg.dict,v=>v==='mine'?openPack('co'):setCfg('dict',v))}
+     {co.players.some(p=>botOf(p.id))&&Seg('Складність ботів',[['easy','Легкі'],['normal','Середні'],['hard','Складні']],cfg.bots,v=>setCfg('bots',v))}
+     <button className={pri+' w-full !py-4 text-lg flex items-center justify-center gap-2 disabled:opacity-50'} disabled={!iHost||!canStart} onClick={startCo}><Ic n='play'/> Почати гру</button>
+     <p className='text-xs opacity-60 text-center'>{iHost?(co.players.length<2?'Потрібно щонайменше 2 гравці':!canStart?'Чекаємо, поки всі живі гравці стануть готовими':'Усе готово, можна починати'):'Гра стартує автоматично, коли всі гравці готові'}</p>
+    </div>
+   </>}
+   {cg&&cg.ph!=='end'&&<div className='space-y-3'>
+    <div className='flex flex-wrap items-center gap-2'>
+     {iHost&&<button className={btn+' !py-1 text-sm'} onClick={togglePause}><Ic n={cg.paused?'play':'pause'}/> {cg.paused?'Відновити':'Пауза хоста'}</button>}
+     {iHost&&<button className={btn+' !py-1 text-sm'} onClick={()=>setAsk({msg:'Повернутися всім складом у лобі?',fn:goLobby})}>В лобі</button>}
+     <button className={btn+' !py-1 text-sm'} onClick={()=>setAsk({msg:'Ви дійсно хочете покинути гру?',fn:leaveLobby})}><Ic n='login'/> Вийти з гри</button>
+    </div>
+    <div className='grid gap-4 md:grid-cols-[1fr_17rem]'>
+    <div className={card+' relative space-y-4'}>
+     <div className='flex flex-wrap items-center justify-between gap-2 text-sm font-semibold'>
+      <span className='opacity-70'>{sp?'Спринт · слів: '+cq.n:'Раунд '+cg.n+(cfg.win==='rounds'?' / '+cfg.goal:'')} · ціль: {cfg.win==='points'?cfg.goal+' очок':cfg.goal+' слів'}</span>
+      <span className={'text-2xl tabular-nums flex items-center gap-1 '+((sp?cq.t:cg.t)<=10?'text-red-500 animate-pulse':'')}><Ic n='timer'/> {sp?cq.t:cg.t}</span>
+      
+     </div>
+     {cg.paused&&<div className='absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-black/60 p-4'><div className={card+' w-full max-w-xs space-y-2 text-center shadow-2xl'}><div className='font-bold'>Гру призупинено</div>
+      <button className={pri+' w-full disabled:opacity-50'} disabled={!iHost} onClick={togglePause}>Продовжити гру</button>
+      <button className={btn+' w-full disabled:opacity-50'} disabled={!iHost} onClick={()=>setAsk({msg:'Повернутися всім складом у лобі?',fn:goLobby})}>В лобі</button>
+      <button className={btn+' w-full text-red-500'} onClick={()=>setAsk({msg:'Ви дійсно хочете покинути гру?',fn:leaveLobby})}>Покинути кімнату</button>
+      {!iHost&&<p className='text-xs opacity-60'>Продовжити може лише хост</p>}</div></div>}
+     <div className='flex flex-nowrap justify-center items-center overflow-hidden px-3 py-3 gap-1'>{[...(sp?cq.s:crv?cg.w:cg.s)].map((c2,i)=><T key={cg.n+'-'+i} n={(sp?cq.w:cg.w).length} ch={c2} i={i} ok={crv&&!!cg.win} rd={crv&&!cg.win}/>)}</div>
+     <input ref={inRef} autoFocus value={cinp} readOnly={cg.paused||cq.done||crv} onChange={e=>{setCinp(e.target.value);coGuess(e.target.value,false)}} onKeyDown={e=>{if(e.key==='Enter')coGuess(cinp,true)}} placeholder={cq.done?'Ви завершили, чекаємо інших':'Введіть слово…'} className={inp+' text-center text-xl uppercase '+(cbad?'shake':'')}/>
+     {crv&&<div className='text-center space-y-2'><div><span className={'px-3 py-1 rounded-full text-sm font-bold text-white '+(cg.win?'bg-emerald-600':'bg-rose-600')}>{cg.win?(pn(cg.win)+(botOf(cg.win)?' (бот)':''))+' вгадав першим! +'+cg.w.length:'Ніхто не вгадав'}</span></div><div className='text-xs opacity-60'>Нове слово через {cg.rt}...</div></div>}
+    </div>
+    <aside className={card+' space-y-2'}><h3 className='font-bold'>Таблиця матчу</h3>{rank.map((p,i)=><div key={p.id} className={'flex items-center gap-2 px-3 py-2 rounded-xl transition-colors '+(crv&&cg.win===p.id?'bg-emerald-500/30 ring-1 ring-emerald-400':'bg-slate-100 dark:bg-slate-700')+(p.id==='me'?' ring-1 ring-emerald-500/50':'')}><span className='w-6 text-center text-sm font-black opacity-70'>{i+1}</span><span className='flex-1 truncate'>{pn(p.id)}{botOf(p.id)&&<span className='text-xs opacity-50'> (бот)</span>}</span>{sp&&cg.pw[p.id]&&<span className='text-xs opacity-60'>{cg.pw[p.id].n} сл.</span>}<b className='tabular-nums'>{cg.sc[p.id]}</b></div>)}</aside>
+   </div></div>}
+   {cg&&cg.ph==='end'&&<div className={card+' relative overflow-hidden space-y-5 text-center'}>
+    {Array.from({length:36},(_,i)=><span key={i} className='absolute top-0 w-2 h-3 rounded-sm pointer-events-none' style={{left:(i*29)%100+'%',background:COL[i%6],animation:'confetti '+(2.5+(i%5)*.4)+'s linear '+((i%7)*.25)+'s infinite'}}/>)}
+    <h2 className='text-2xl font-black relative'>Фінал матчу</h2>
+    <div className='flex items-end justify-center gap-3 pt-4 relative'>{[1,0,2].map(pi=>{const p=rank[pi];if(!p)return null;return <div key={p.id} className='flex flex-col items-center' style={{animation:'rise .8s ease both',animationDelay:pi*200+'ms'}}>
+     <span className='text-amber-500 h-6'>{pi===0&&<Ic n='crown'/>}</span>
+     <span className='w-12 h-12 rounded-full bg-emerald-600 text-white text-xl font-black flex items-center justify-center'>{pn(p.id)[0].toUpperCase()}</span>
+     <div className='font-bold max-w-[7rem] truncate'>{pn(p.id)}{botOf(p.id)?' (бот)':''}</div><div className='text-sm opacity-70 mb-1'>{cg.sc[p.id]} очок</div>
+     <div className={'w-24 sm:w-28 rounded-t-xl flex items-start justify-center pt-2 text-3xl font-black border-t-4 bg-gradient-to-b '+['h-32 from-yellow-300 to-amber-600 border-yellow-100 text-amber-950','h-24 from-slate-100 to-slate-500 border-white text-slate-900','h-16 from-orange-300 to-amber-800 border-orange-200 text-orange-950'][pi]} style={{boxShadow:'inset 0 -8px 0 rgba(0,0,0,.18),0 10px 20px rgba(0,0,0,.3)'}}>{pi+1}</div></div>})}</div>
+    <div className='grid gap-2 sm:grid-cols-3 relative'>{noms(cg,pn).map(x=><div key={x.t} className='rounded-xl bg-slate-100 dark:bg-slate-700 p-3'><div className='flex items-center justify-center gap-2 font-bold'><Ic n={x.ic}/> {x.t}</div><div className='text-sm'>{x.w}</div><div className='text-xs opacity-60'>{x.v}</div></div>)}</div>
+    <div className='flex flex-wrap justify-center gap-2 relative'><button className={pri} onClick={()=>setCo(c=>({...c,g:null,players:c.players.map(p=>({...p,ready:!!botOf(p.id)}))}))}>Вийти в лобі з гравцями</button><button className={btn} onClick={()=>{setTab('game');setG(null);setCo(c=>({...c,g:null,players:c.players.map(p=>({...p,ready:!!botOf(p.id)}))}))}}>В головне меню</button></div>
+   </div>}
+  </section>}
+  {tab==='tw'&&<section className='space-y-4'>
+   <div className={card+' tw-ctl space-y-4'}>
+    <h2 className='font-bold flex items-center gap-2'><Tw/> Підключення до чату Twitch</h2>
+    <div className='flex flex-wrap gap-2'>
+     <input value={ch} onChange={e=>setCh(e.target.value)} placeholder='назва каналу' className={inp+' !w-auto flex-1 min-w-[10rem]'}/>
+     {conn==='on'||conn==='connecting'?<button className={btn} onClick={twOff}>Відключити</button>:<button className={pri+' !py-2'} onClick={twConn}>Підключити чат</button>}
+    </div>
+    <p className='text-xs opacity-70'>Статус: {{off:'не підключено',connecting:'підключення…',on:'слухаю чат',error:'помилка (WebSocket може бути заблокований у цьому вікні)'}[conn]}</p>
+    <div><div className='text-xs font-semibold opacity-60 mb-1'>Тема віджета</div><div className='flex flex-wrap gap-2'>{Object.entries(TH).map(([k,v])=><button key={k} className={sel(theme===k)+' text-sm'} onClick={()=>setTheme(k)}>{k==='neon'?<Tw/>:<Ic n={TI[k]}/>} {v.name}</button>)}</div>{th.neonC&&<div className='flex flex-wrap items-center gap-2 mt-2'><span className='text-xs opacity-70'>Світіння тексту:</span><button className={sel(neonGlow)+' !py-1 text-sm'} onClick={()=>setNeonGlow(true)}><Ic n='sparkles'/> Неон</button><button className={sel(!neonGlow)+' !py-1 text-sm'} onClick={()=>setNeonGlow(false)}><Ic n='sq'/> Чіткий</button></div>}</div>
+    <div className='border-t border-slate-200 dark:border-slate-700 pt-3 space-y-3'>
+     <div className='text-xs font-semibold opacity-60'>Панель керування</div>
+     <div className='flex flex-wrap gap-2'>
+      <button className={btn} onClick={()=>setTw(t=>({...t,paused:!t.paused}))}><Ic n={tw.paused?'play':'pause'}/> {tw.paused?'Відновити':'Пауза'}</button>
+      <button className={btn} onClick={twSkip}><Ic n='skip'/> Пропустити слово</button>
+      <button className={btn} onClick={()=>setWsnd(!wsnd)}><Ic n={wsnd?'vol':'mute'}/> Звук: {wsnd?'Увімкнено':'Беззвучно'}</button>
+      
+     </div>
+     <div className='flex flex-wrap items-center gap-2'><span className='text-xs opacity-70 w-28'>Таймер раунду</span>{[[true,'Увімк'],[false,'Вимк']].map(([k,l])=><button key={l} className={sel(tw.timer===k)+' !py-1 text-sm'} onClick={()=>setTw(x=>({...x,timer:k}))}>{l}</button>)}</div>
+     {tw.timer&&<div className='flex flex-wrap items-center gap-2'><span className='text-xs opacity-70 w-28'>Тривалість раунду</span>{[30,45,60,90].map(d=><button key={d} className={sel(tw.dur===d)+' !py-1 text-sm'} onClick={()=>setDur(d)}>{d}с</button>)}</div>}
+     <div className='flex flex-wrap items-center gap-2'><span className='text-xs opacity-70 w-28'>Пауза між раундами</span>{[3,5,10].map(d=><button key={d} className={sel(tw.rest===d)+' !py-1 text-sm'} onClick={()=>setTw(x=>({...x,rest:d}))}>{d}с</button>)}</div>
+     <div className='flex flex-wrap items-center gap-2'><span className='text-xs opacity-70 w-28'>Словник стріму</span>{[['easy','Легкий'],['mid','Середній'],['hard','Складний'],['mix','Змішаний'],['mine','Мій пак']].map(([k,l])=><button key={k} className={sel(tw.dict===k)+' !py-1 text-sm'} onClick={()=>k==='mine'?openPack('tw'):setTw(x=>({...x,dict:k}))}>{k==='mine'&&packName?'Мій пак: '+packName:l}</button>)}</div>
+     <div className='flex flex-wrap items-center gap-2'><span className='text-xs opacity-70 w-28'>Таблиця лідерів</span>{[3,5,10].map(k=><button key={k} className={sel(top===k)+' !py-1 text-sm'} onClick={()=>setTop(k)}>Топ-{k}</button>)}</div>
+     <div className='flex flex-wrap gap-2'>
+      <button className={btn} onClick={()=>setAsk({msg:'Очистити топ очок? Усі очки гравців буде видалено.',fn:twClr})}><Ic n='trash'/> Очистити топ очок</button>
+      <button className={btn} onClick={()=>setAsk({msg:'Скинути рекорд серії?',fn:twBest})}><Ic n='trash'/> Скинути рекорд серії</button>
+      <button className={btn} onClick={()=>setAsk({msg:'Скинути гру? Лічильник раундів почнеться з 1.',fn:twGame})}><Ic n='trash'/> Скинути гру</button>
+     </div>
+    </div>
+   </div>
+   <div className={'max-w-[900px] mx-auto w-full '+(th.wrap||'')} style={th.wrapS}><div className={'tw-frame relative p-5 space-y-4 w-full text-white '+th.body+' '+th.font} style={th.bodyS}>
+    
+    <div className='flex flex-wrap items-start justify-between gap-3'>
+     <div className='flex items-center gap-2'><span className={th.logo}>АНАГРАМА</span><span className={th.chip}>Раунд {tw.r}</span></div>
+     <div className={th.chip+' flex items-center gap-2'}><span className='animate-pulse'><Fl c='w-5 h-5'/></span><span className='text-[10px] uppercase opacity-70'>Найкраща серія</span><b>{tw.best.n>=2?tw.best.name+' ×'+tw.best.n:'—'}</b></div>
+    </div>
+    <div className='text-center space-y-3'>
+     <div className={'text-lg font-extrabold '+th.acc}>{tw.ph==='play'?'Розгадай слово!':tw.ok?'Слово відгадано!':tw.sk?'Слово пропущено':'Час вийшов!'}</div>
+     <div className='relative'>{tw.paused&&<div className='absolute inset-0 z-10 flex items-center justify-center text-white/90'><span className='scale-[2]'><Ic n='lock'/></span></div>}<div className={'flex flex-nowrap justify-center items-center overflow-hidden px-4 py-6 gap-1.5'+(tw.paused?' blur-md opacity-30 select-none':'')}>{[...(tw.ph==='play'?tw.s:tw.w)].map((c,i)=>{const n=tw.w.length,rv=tw.ph==='rev';return <span key={i} className={'shrink min-w-[1.25rem] flex items-center justify-center uppercase select-none '+(n<=7?'w-16 h-16 text-3xl':n<=10?'w-14 h-14 text-3xl':'w-12 h-12 text-2xl')+' '+(rv?(tw.ok?th.win:th.lose)+' font-black shadow-lg '+(theme==='mint'?'rounded-none':'rounded-lg'):th.tile)} style={rv?{animation:(tw.ok?'winHop .7s ease ':'loseWobble .6s ease ')+(i*70)+'ms both'}:{...ts,animation:'floatWave 3.5s ease-in-out infinite'+(th.tileAnim||''),animationDelay:i*120+'ms'}}>{c}</span>})}</div></div>
+     <div className='flex flex-wrap justify-center items-center gap-2'>{tw.ph==='play'?<><span className={th.chip}>Пиши слово в чат</span><span className={th.chip}>{tw.w.length} літер</span>{tw.timer&&<span className={th.chip+' flex items-center gap-1 '+(tw.t<=10?th.warn+' animate-pulse':th.acc)}><Ic n='timer'/> {Math.floor(tw.t/60)}:{String(tw.t%60).padStart(2,'0')}</span>}</>:<><span className={'px-3 py-1 rounded-full text-sm font-bold text-white '+(tw.ok?th.okBg:th.noBg)}>{tw.ok?'[ '+tw.winner+' вгадує! +1 ]':tw.sk?'[ Слово пропущено ]':'[ Ніхто не вгадав ]'}</span><span className={th.chip}>Нове слово через {tw.t}...</span></>}</div>
+    </div>
+    <div className='rounded-xl bg-black/25 p-4'>
+     <div className='font-extrabold mb-2'>Таблиця лідерів <span className='text-xs font-normal opacity-60'>Топ {top}</span></div>
+     {lst.length?<div className={'grid gap-2 '+(top>5?'sm:grid-cols-2':'')} style={top>5?{gridAutoFlow:'column',gridTemplateRows:'repeat(5,auto)'}:{}}>{lst.map((r,i)=>{const win=tw.ph==='rev'&&tw.ok&&r.name===tw.winner,t1=i===0&&theme==='neon';return <div key={r.name} className={'flex items-center gap-3 px-3 py-2 '+(win?th.okRow+' rounded-full':th.row+(i<3?' '+th.pod[i]:''))} style={t1&&!win?{background:'linear-gradient(90deg,rgba(250,204,21,.28),rgba(145,70,255,.38))'}:undefined}><span className={'w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm font-black '+(i<3?th.med[i]:th.rk)}>{i+1}</span><span className='flex-1 truncate font-semibold'>{r.name}</span>{r.streak>=2&&<span className='px-2 rounded-full bg-amber-400 text-slate-900 text-xs font-bold inline-flex items-center gap-0.5'><Fl c='w-3 h-3'/>{r.streak}</span>}<b className='tabular-nums text-lg'>{r.score}</b></div>})}</div>:<div className='text-sm opacity-60'>Поки порожньо: чекаємо першу відгадку в чаті</div>}
+    </div>
+   </div></div>
+   <div className={card+' tw-ctl space-y-3 text-sm'}>
+    <div className='flex flex-wrap items-center justify-between gap-2'><h2 className='font-bold'>Підключення до OBS</h2><span className='px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-xs font-semibold'>Рекомендована роздільна здатність: 900 × 560 px</span></div>
+    <input readOnly value={wurl} onFocus={e=>e.target.select()} className={inp+' font-mono text-xs'}/>
+    <div className='flex flex-wrap gap-2'>
+     <button className={pri+' flex items-center gap-2'} onClick={()=>{try{navigator.clipboard.writeText(wurl)}catch(e){}setCopied(true);setTimeout(()=>setCopied(false),1800)}}><Ic n='copy'/> {copied?'Скопійовано!':'Скопіювати посилання для OBS'}</button>
+     <a className={btn+' flex items-center gap-2'} href={wurl} target='_blank' rel='noopener'><Ic n='ext'/> Відкрити віджет у новій вкладці</a>
+    </div>
+    <ol className='list-decimal pl-5 space-y-1'>
+     <li>В OBS додай джерело: «Браузер» (Browser Source).</li>
+     <li>Встав скопійований URL у поле адреси.</li>
+     <li>Вкажи ширину 900 і висоту 560. Готово!</li>
+    </ol>
+    <p className='text-xs opacity-60'>Посилання з цього вікна (claude.ai) вимагає входу, тому OBS його не відкриє: розмістіть гру на публічному хостингу, наприклад GitHub Pages. Віджет читає чат лише з розміщеної сторінки. Таблиця зберігається в браузері OBS, а власні набори слів туди не переходять.</p>
+   </div>
+  </section>}
+  <footer className='mt-auto pt-6 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-x-20 gap-y-6 text-sm'>
+   <div className='flex flex-col items-start gap-2.5'><div className='text-xs uppercase tracking-wider opacity-50'>Про проєкт</div>
+    <button className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity' onClick={()=>setModal('rules')}><Ic n='book'/> Про гру та правила</button>
+    <button className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity' onClick={()=>setModal('idea')}><Ic n='bulb'/> Ідея або багрепорт</button></div>
+   <div className='flex flex-col items-start gap-2.5'><div className='text-xs uppercase tracking-wider opacity-50'>Підтримати проєкт</div>
+    <a className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity !opacity-100 text-emerald-600 dark:text-emerald-400' href={MONO} target='_blank' rel='noopener'><Ic n='heart'/> Monobank</a>
+    <a className='text-left opacity-70 hover:opacity-100 hover:underline underline-offset-4 flex items-center gap-2 transition-opacity' href={BMC} target='_blank' rel='noopener'><Ic n='coffee'/> Buy Me a Coffee</a></div>
+   <div className='w-full text-xs opacity-40'>Created by Kazariel · © 2026 Анаграма · українська гра зі слів</div>
+  </footer>
+ </div>;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body></html>
